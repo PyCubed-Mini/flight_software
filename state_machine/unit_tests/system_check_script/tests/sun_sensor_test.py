@@ -8,6 +8,11 @@ Sun Sensor Test
 import time
 
 def user_test(sun_sensor, sensoridx, light_dark):
+    """
+    All user interaction happens in this function
+    Set wait times, change print statement and input formatting, etc.
+    """
+
     wait_time = 30
 
     print("Testing Sun Sensor", str(sensoridx), "in the", light_dark)
@@ -24,6 +29,12 @@ def user_test(sun_sensor, sensoridx, light_dark):
 
 
 def test_sensorx(cubesat, result_dict, sensoridx, light_dark):
+    """
+    All automation happens in this function
+    Select burnwire and voltage level
+    Process user test results and update the result dictionary accordingly
+    """
+
     sun_sensor = 0
     result_key = ''
     if sensoridx == '-Y':

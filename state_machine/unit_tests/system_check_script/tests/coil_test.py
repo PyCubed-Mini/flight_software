@@ -42,6 +42,7 @@ def user_test(driver, coilidx):
     print("Beginning the test now. Please note the magnetometer readings for \
         the next", str(driver_time * 3), "seconds.")
 
+    # test each voltage level
     driver.vout(v1)
     time.sleep(driver_time)
     driver.vout(v2)
@@ -49,6 +50,7 @@ def user_test(driver, coilidx):
     driver.vout(v3)
     time.sleep(driver_time)
 
+    # check user input
     success = input("Did the magnetometer readings increase over the last \
         " + str(driver_time * 3) + " seconds? (Y/N): ")
 
@@ -86,6 +88,7 @@ def voltage_levelx(cubesat, result_dict, coilidx):
     else:
         result_val_string += 'Magnetometer readings did not change as expected.'
 
+    # update result dictionary
     result_dict[result_key] = (result_val_string, result)
     return result_dict
 

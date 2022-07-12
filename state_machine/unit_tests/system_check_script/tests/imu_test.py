@@ -6,22 +6,24 @@ IMU Sensor Test
 """
 
 import time
-import math
+from math import sqrt
+import random
 
 def user_test(cubesat, result_dict, testidx):
     """
-    fix tuple operations
+    All user interaction happens in this function
+    Set wait times, change print statement and input formatting, etc.
     """
 
-    wait_time = 30
+    wait_time = 10
     mag_time = 15
 
     if testidx == "Still":
         print("Please leave the cubesat flat on a table. Waiting", wait_time, "seconds.")
         time.sleep(wait_time)
         print("Collecting IMU data...")
-        acc = cubesat.acceleration()
-        gyro = cubesat.gyro()
+        acc = cubesat.acceleration
+        gyro = cubesat.gyro
         return acc, gyro, 0.0
 
     elif testidx == "Moving":
@@ -30,10 +32,10 @@ def user_test(cubesat, result_dict, testidx):
         print("Please move the cubesat around for the next", wait_time, "seconds, starting now.")
         print("Collecting IMU data...")
 
-        random_wait_time = math.random(1, wait_time)
+        random_wait_time = random.randint(1, wait_time)
         time.sleep(random_wait_time)
-        mid_acc = cubesat.acceleration()
-        gyro = cubesat.gyro()
+        mid_acc = cubesat.acceleration
+        gyro = cubesat.gyro
         time.sleep(wait_time - random_wait_time)
         acc = mid_acc
         return acc, gyro, 0.0
@@ -42,8 +44,8 @@ def user_test(cubesat, result_dict, testidx):
         print("Please put cubesat on turntable. Waiting", wait_time, "seconds.")
         time.sleep(wait_time)
         print("Collecting IMU data...")
-        acc = cubesat.acceleration()
-        gyro = cubesat.gyro()
+        acc = cubesat.acceleration
+        gyro = cubesat.gyro
         return acc, gyro, 0.0
 
     elif testidx == "Magnet":
@@ -51,18 +53,23 @@ def user_test(cubesat, result_dict, testidx):
             Waiting", wait_time, "seconds")
         time.sleep(wait_time)
         print("Please slowly move the magnet closer to the cubesat for", mag_time, "seconds")
-        acc = cubesat.acceleration()
-        gyro = cubesat.gyro()
-        starting_mag = cubesat.magnetic()
+        acc = cubesat.acceleration
+        gyro = cubesat.gyro
+        starting_mag = cubesat.magnetic
         time.sleep(mag_time)
-        ending_mag = cubesat.magnetic()
+        ending_mag = cubesat.magnetic
 
-        mag = (math.sqrt(ending_mag[0] ** 2 + ending_mag[1] ** 2 + ending_mag[2] ** 2) -
-               math.sqrt(starting_mag[0] ** 2 + starting_mag[1] ** 2 + starting_mag[2] ** 2))
+        mag = (sqrt(ending_mag[0] ** 2 + ending_mag[1] ** 2 + ending_mag[2] ** 2) -
+               sqrt(starting_mag[0] ** 2 + starting_mag[1] ** 2 + starting_mag[2] ** 2))
         return acc, gyro, mag
 
 
 def imu_test(cubesat, result_dict, testidx):
+    """
+    All automation happens in this function
+    Select burnwire and voltage level
+    Process user test results and update the result dictionary accordingly
+    """
     if testidx == "Still":
         acc, gyro, mag = user_test(cubesat, result_dict, testidx)
         result_val_string = "Testing IMU when cubesat is still. Acc: " + str(acc) + ", \
@@ -92,8 +99,8 @@ def imu_test(cubesat, result_dict, testidx):
         result_val_string = "Testing IMU when cubesat is rotating on a turntable. Acc:\
              " + str(acc) + ", Gyro: " + str(gyro)
 
-        ang_vel = input("Please enter the speed the turntable was rotating at: ")
-        if abs(ang_vel - math.sqrt(gyro[0] ** 2 + gyro[1] ** 2 + gyro[2] ** 2)) < 0.2:
+        ang_vel = float(input("Please enter the speed the turntable was rotating at: "))
+        if abs(ang_vel - sqrt(gyro[0] ** 2 + gyro[1] ** 2 + gyro[2] ** 2)) < 0.2:
             result_dict['IMU_Gyro_Turntable'] = (result_val_string, True)
         else:
             result_dict['IMU_Gyro_Turntable'] = (result_val_string, False)
