@@ -25,7 +25,9 @@ def user_test(sun_sensor, sensoridx, light_dark):
 
     time.sleep(wait_time)
     print("Collecting sensor data...")
-    return sun_sensor.luminosity()
+    res = sun_sensor._compute_lux()
+    print("Data collection complete.")
+    return res
 
 
 def test_sensorx(cubesat, result_dict, sensoridx, light_dark):
@@ -56,25 +58,26 @@ def test_sensorx(cubesat, result_dict, sensoridx, light_dark):
         sun_sensor = cubesat.sun_xp
         result_key = 'Sun_PlusX_'
 
-    broadband, infrared = user_test(sun_sensor, sensoridx, light_dark)
+    lux = user_test(sun_sensor, sensoridx, light_dark)
 
     # find result key and result value strings
     result_key = result_key + light_dark
-    result_val_string = ("Testing Sun Sensor " + sensoridx + " in the " +
-                         light_dark + "resulted in a broadband sensor value of " +
-                         str(broadband) + " and an infrared sensor value of " + str(infrared))
+    if lux:
+        result_val_string = ("Testing Sun Sensor " + sensoridx + " in the " +
+                             light_dark + "resulted in a lux value of " + str(lux))
+    else:
+        result_val_string = ("No lux value returned; lux is None.")
 
     if light_dark == "Light":
         # test result values and update result_dict
-        if broadband > 0 and infrared > 0:  # light source will give us light and heat
+        if lux is not None and lux >= 100:  # 100 is enough to illuminate small room
             result_dict[result_key] = (result_val_string, True)
         else:
             result_dict[result_key] = (result_val_string, False)
 
     elif light_dark == 'Dark':
         # test result values and update result_dict
-        # don't test infrared for this one; heat from user will affect test
-        if abs(broadband) < 1:  # if broadband is between 0 and 1
+        if lux is not None and lux < 50:  # 50 is about equal to low indoor light
             result_dict[result_key] = (result_val_string, True)
         else:
             result_dict[result_key] = (result_val_string, False)
