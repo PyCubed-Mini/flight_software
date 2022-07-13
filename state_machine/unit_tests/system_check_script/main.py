@@ -13,7 +13,7 @@ import tests.coil_test
 import tests.burnwire_test
 
 """
-TODO: format dictionaries better
+TODO:
 run through files and documents for last check
 fix string formatting
 """
@@ -26,6 +26,7 @@ result_dict = {
     'IMU_Acc_Moving': ('', False),
     'IMU_Gyro_Still': ('', False),
     'IMU_Gyro_Turntable': ('', False),
+    'IMU_Mag_Standalone': ('', False),
     'IMU_Mag_Magnet': ('', False),
     'IMU_Temp': ('', False),
     'Radio_Receive_Beacon': ('', False),
@@ -56,7 +57,9 @@ result_dict = {
 # print acknowledgement that test has started
 print("Running System Check...")
 print("Initialization has concluded. Printing results...")
-print(str(hardware_dict))
+print("")
+for entry in hardware_dict:
+    print(str(entry.key), str(entry.val))
 print("")
 
 # check that solar boards are attached
@@ -104,5 +107,9 @@ if run_burnwire:
         tests.burnwire_test.run(cubesat, hardware_dict, result_dict)
 
 # end test and print results
+print("")
 print("Test has concluded. Printing results...")
-print(str(result_dict))
+print("")
+for entry in hardware_dict:
+    print(str(entry.key), str(entry.val))
+print("")
