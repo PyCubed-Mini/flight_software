@@ -111,6 +111,11 @@ def run(cubesat, hardware_dict, result_dict, antenna_attached):
 
     # if Radio and antenna detected, run other tests
     else:
+        print("In order to run this test, please download the groundstation code.")
+        print("This can be done by downloading the contents of the \"system-check\" folder " +
+              "in the \"feather-groundstation\" repository.")
+        print("You may run this file again once you have the groundstation up and running.")
+        
         # test transmission and reception together
         result, count, attempts = radio_test(cubesat, result_dict, "Both")
         result_val_string = ("Succeeded in sending and receiving message" + str(count) +
