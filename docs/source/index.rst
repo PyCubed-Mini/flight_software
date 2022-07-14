@@ -9,4 +9,5 @@ Contents
 .. toctree::
 
    overview
+   firmware
    api
