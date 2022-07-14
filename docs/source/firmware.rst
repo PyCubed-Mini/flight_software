@@ -28,7 +28,7 @@ To install download the `10-2020-q4-major <https://developer.arm.com/-/media/Fil
 
 Then extract it somewhere and add the following to your `.bashrc`::
 
-    export PATH="$PATH:/home/thetazero/bin/gcc-arm-none-eabi-10-2020-q4-major/bin/"
+    export PATH="$PATH:/home/user/path/to/gcc-arm-none-eabi-10-2020-q4-major/bin/"
 
 Building
 ------------
