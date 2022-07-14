@@ -17,10 +17,10 @@ For Ubuntu, the following packages are required:
 You will need to install **build-essential**, **gettext**, and **uncrustify** by running
 .. code-block:: console
 
-    sudo apt install build-essential
-    # The version of uncrustify you need is in a PPA:
-    sudo add-apt-repository ppa:pybricks/ppa
-    sudo apt install git gettext uncrustify
+    $ sudo apt install build-essential
+    $ # The version of uncrustify you need is in a PPA:
+    $ sudo add-apt-repository ppa:pybricks/ppa
+    $ sudo apt install git gettext uncrustify
 
 The Pycubed-Mini board uses a Cortex-M build. 
 Therefore it will require the ARM Cortex-M toolchain.
@@ -30,7 +30,7 @@ To install download the `10-2020-q4-major <https://developer.arm.com/-/media/Fil
 Then extract it somewhere and add the following to your `.bashrc` (make sure to modify the path as required)
 .. code-block:: console
 
-    export PATH="$PATH:/home/user/path/to/gcc-arm-none-eabi-10-2020-q4-major/bin/"
+    $ export PATH="$PATH:/home/user/path/to/gcc-arm-none-eabi-10-2020-q4-major/bin/"
 
 Building
 ------------
