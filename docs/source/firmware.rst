@@ -15,6 +15,7 @@ If you are not on Linux, follow the instructions at the above links.
 For Ubuntu, the following packages are required:
 
 You will need to install **build-essential**, **gettext**, and **uncrustify** by running
+
 .. code-block:: console
 
     $ sudo apt install build-essential
@@ -28,6 +29,7 @@ Unfortunately, the ARM Cortex-M toolchain is not available through apt or snap.
 To install download the `10-2020-q4-major <https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2?revision=ca0cbf9c-9de2-491c-ac48-898b5bbc0443&la=en&hash=68760A8AE66026BCF99F05AC017A6A50C6FD832A>`_ version.
 
 Then extract it somewhere and add the following to your `.bashrc` (make sure to modify the path as required)
+
 .. code-block:: console
 
     $ export PATH="$PATH:/home/user/path/to/gcc-arm-none-eabi-10-2020-q4-major/bin/"
