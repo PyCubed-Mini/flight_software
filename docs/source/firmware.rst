@@ -39,7 +39,7 @@ Then extract it somewhere and add the following to your `.bashrc` (make sure to 
 Building
 ------------
 
-First you need to fetch the code to build. 
+First fetch the code required to build. 
 This should take a while, as many submodules are being donwloaded.
 
 .. code-block:: console
@@ -61,9 +61,9 @@ Then build the mpy-cross compiler via
 
     $ make -C mpy-cross
 
-Then download the pycubed-mini firmware from `here <https://github.com/PyCubed-Mini/avionics-motherboard/tree/main/firmware/pycubedminiv03/firmware_build>`.
-And then create a `pycubed-mini` folder in the `ports/atmel-samd/boards` directory.
-And place the firmware in the `pycubed-mini` folder.
+Then download the pycubed-mini v3 firmware from `here <https://github.com/PyCubed-Mini/avionics-motherboard/tree/main/firmware/pycubedminiv03/firmware_build>`_.
+Then create a `pycubed-mini` folder in the `ports/atmel-samd/boards` directory.
+Then place the firmware in the `pycubed-mini` folder.
 
 Finally run the following command to build the firmware
 
