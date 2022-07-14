@@ -13,7 +13,7 @@ The required packages for this project are:
    - `graphviz <http://www.graphviz.org/>`_
 
 Numpy is used for running the emulated sattelite and is therefore not required for building.
-ImagMagick and graphviz are used to create a state machine diagram along with your built files.
+ImageMagick and graphviz are used to create a state machine diagram along with your built files.
 
 Building
 ------------
