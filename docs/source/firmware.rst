@@ -36,3 +36,36 @@ Then extract it somewhere and add the following to your `.bashrc` (make sure to 
 
 Building
 ------------
+
+First you need to fetch the code to build. 
+This should take a while, as many submodules are being donwloaded.
+
+.. code-block:: console
+
+    $ git clone https://github.com/adafruit/circuitpython.git
+    $ cd circuitpython
+    $ make fetch-submodules
+
+Then install the required python dependencies
+
+.. code-block:: console
+
+    $ pip3 install --upgrade -r requirements-dev.txt
+    $ pip3 install --upgrade -r requirements-doc.txt
+
+Then build the mpy-cross compiler via
+
+.. code-block:: console
+
+    $ make -C mpy-cross
+
+Then download the pycubed-mini firmware from `here <https://github.com/PyCubed-Mini/avionics-motherboard/tree/main/firmware/pycubedminiv03/firmware_build>`.
+And then create a `pycubed-mini` folder in the `ports/atmel-samd/boards` directory.
+And place the firmware in the `pycubed-mini` folder.
+
+Finally run the following command to build the firmware
+
+.. code-block:: console
+
+    $ cd ports/atmel-samd
+    $ make BOARD=pycubed-mini
