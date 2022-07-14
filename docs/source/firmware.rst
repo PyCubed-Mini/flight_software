@@ -7,6 +7,8 @@ Building firmware
 
 Based on the instructions from `PyCubed <https://pycubed.org/Building-the-PyCubed-Firmware-from-Source-edd6215b3d364fdf9dc4af67582c4006>`_ and
 `CircuitPython <https://learn.adafruit.com/building-circuitpython/linux>`_.
+CircuitPython is meant to be built in a Unix (Linux, Mac, etc.) environment.
+While it is possible to build on Windows with the appropriate workarounds, it is not recommended.
 
 Dependencies
 ------------
