@@ -6,116 +6,73 @@ Burnwire Deployment Test
 """
 
 import time
+from lib import pycubed as cubesat
 
-# voltage level constants; set between 0 and 1
-v1 = 0.25
-v2 = 0.5
-v3 = 0.75
-
-def user_test(burnnum, burnwire, vlevel):
+def user_test():
     """
     All user interaction happens in this function
-    Set wait times, change print statement and input formatting, etc.
+    Prompt users, get user inputs for voltage level and duration and return
     """
 
-    # wait times
-    multimeter_wait_time = 30
-    burn_time = 30
-
-    # other constants
-    projected_voltage = vlevel * 3.3
-    dutycycle = int((vlevel / 100) * (0xFFFF))
-
-    # set up the test
-    print("Testing Burn Wire IC", str(burnnum), "for", projected_voltage, "volts.")
-    print("Please retrieve a multimeter. Waiting", str(multimeter_wait_time), "seconds.")
-    time.sleep(multimeter_wait_time)
+    wait_time = 10
 
     # conduct the test
-    print("Please read the voltage between the ground pin (GND) and burnwire pin on the -Z solar board.")
-    print("Waiting", str(burn_time), "seconds.")
-    burnwire.duty_cycle = dutycycle
-    time.sleep(burn_time)
-    burnwire.duty_cycle = 0
+    print("Initializing burnwire test...")
+    print("You can test using a multimeter or fishing line.")
+    print("If using a multimeter, please read the voltage between the" +
+          "ground pin (GND) and burnwire pin on the -Z solar board.")
+    # get user input for voltage level and duration
+    voltage = float(input("At what voltage do you want to run the burnwire IC? (up to 3.3V): "))
+    burn_time = int(input("For how long do you want to run the burnwire test? "))
+    print("Test starting in", str(wait_time), "seconds.")
+    time.sleep(wait_time)
+    return voltage, burn_time
 
-    # gather input and return results
-    print("Burnwire Test Complete")
-    actual_voltage = float(input("Please enter the voltage you recorded: "))
-    return projected_voltage, actual_voltage
 
-
-def voltage_levelx(cubesat, result_dict, vnum, burnnum):
+def burnwire_test(result_dict, burnnum):
     """
     All automation happens in this function
     Select burnwire and voltage level
     Process user test results and update the result dictionary accordingly
     """
 
-    # choose a burnwire or exit
-    burnwire = 0
-    if burnnum == 1:
-        burnwire = cubesat.burnwire1
-    elif burnnum == 2:
-        burnwire = cubesat.burnwire2
-    else:
-        print("Not a valid burnwire.")
-        return result_dict
+    # get user input for voltage and duration
+    voltage, burn_time = user_test()
 
-    # choose a voltage level or exit
-    vlevel = 0
-    if vnum == 1:
-        vlevel = v1
-    elif vnum == 2:
-        vlevel = v2
-    elif vnum == 3:
-        vlevel = v3
-    else:
-        print("Not a valid voltage level option.")
-        return result_dict
+    # calculate voltage level and conduct the test
+    voltage_level = voltage / 3.3
+    cubesat.burn(burn_num=str(burnnum), dutycycle=voltage_level, duration=burn_time)
 
-    # set string constant
-    result_key = 'Burnwire' + str(burnnum) + '_Volt' + str(vlevel)
+    # gather user input and return results
+    print("Burnwire Test Complete")
+    success_input = input("Did the test work as expected? (Y/N): ")
+    success = False
+    if success_input == "Y":
+        success = True
 
-    # get user test result values, process and print results
-    projected_voltage, actual_voltage = user_test(burnnum, burnwire, vlevel)
-    result_val_string = ('Burnwire ' + str(burnnum) + ' at voltage level ' +
-                         str(vlevel) + 'returns ' + actual_voltage + ' volts')
-    print(result_val_string)
-
-    # update dictionary values based on user test result values
-    if (abs(projected_voltage - actual_voltage) < 0.2):
-        result_dict[result_key] = (result_val_string, True)
-    else:
-        result_dict[result_key] = (result_val_string, False)
-
+    # process results
+    result_key = 'Burnwire' + str(burnnum)
+    result_val_string = ('Tested burnwire ' + str(burnnum) + ' at ' +
+                         str(voltage) + ' V')
+    result_dict[result_key] = (result_val_string, success)
     return result_dict
 
 
-def run(cubesat, hardware_dict, result_dict):
+def run(hardware_dict, result_dict):
+    """
+    Check that the correct hardware is initialized and run tests
+    """
+
     # if no Burn Wire 1 detected, update result dictionary
-    if not hardware_dict['Burn Wire 1']:
-        result_dict['Burnwire1_Volt1'] = ('Cannot test burnwire 1 at ' +
-                                          v1 + '; no burnwire 1 detected', False)
-        result_dict['Burnwire1_Volt2'] = ('Cannot test burnwire 1 at ' +
-                                          v2 + '; no burnwire 1 detected', False)
-        result_dict['Burnwire1_Volt3'] = ('Cannot test burnwire 1 at ' +
-                                          v3 + '; no burnwire 1 detected', False)
+    if not hardware_dict['Burnwire1']:
+        result_dict['Burnwire1'] = ('No burnwire 1 detected', False)
     else:  # Burn Wire 1 detected, run tests
-        voltage_levelx(cubesat, result_dict, 1, 1)
-        voltage_levelx(cubesat, result_dict, 2, 1)
-        voltage_levelx(cubesat, result_dict, 3, 1)
+        burnwire_test(result_dict, 1)
 
     # if no Burn Wire 2 detected, update result dictionary
-    if not hardware_dict['Burn Wire 2']:
-        result_dict['Burnwire1_Volt1'] = ('Cannot test burnwire 2 at ' + v1 +
-                                          '; burnwire 2 integrated circuit is not set up', False)
-        result_dict['Burnwire1_Volt2'] = ('Cannot test burnwire 2 at ' + v2 +
-                                          '; burnwire 2 integrated circuit is not set up', False)
-        result_dict['Burnwire1_Volt3'] = ('Cannot test burnwire 2 at ' + v3 +
-                                          '; burnwire 2 integrated circuit is not set up', False)
+    if not hardware_dict['Burnwire2']:
+        result_dict['Burnwire2'] = ('No burnwire 2 detected', False)
     else:  # Burn Wire 2 detected, run tests
-        voltage_levelx(cubesat, result_dict, 1, 2)
-        voltage_levelx(cubesat, result_dict, 2, 2)
-        voltage_levelx(cubesat, result_dict, 3, 2)
+        burnwire_test(result_dict, 2)
 
     return result_dict
