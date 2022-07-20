@@ -5,7 +5,8 @@ Radio Test
 * Author(s): Aleksei Seletskiy, Yashika Batra
 """
 
-import pycubed
+from lib import pycubed as cubesat
+import time
 
 ANTENNA_ATTACHED = False
 
@@ -13,10 +14,16 @@ send_text = "Hello World! Sending a beacon"
 receive_text = "Hello World! Receiving a response"
 
 
-async def radio_test(cubesat, result_dict, testidx):
+async def radio_test(test_type):
+    """
+    Run radio tests given an input - Send, Receive, or Both
+    Return if there was at least one success, as well as the 
+    # of transmission/reception attempts and successes
+    """
+
     attempts = 5
 
-    if testidx == "Both":
+    if test_type == "Both":
         success = False
         success_count = 0
 
@@ -25,14 +32,14 @@ async def radio_test(cubesat, result_dict, testidx):
 
         for i in range(attempts):
             # send beacon text and keep listening
-            pycubed.send(send_text, keep_listening=True)
+            cubesat.radio.send(send_text, keep_listening=True)
 
             # await a response for 5 seconds
-            heard_something = await pycubed.await_rx(timeout=5.0)
+            heard_something = await cubesat.radio.await_rx(timeout=5.0)
 
             if heard_something:
                 # get response
-                response = pycubed.receive(keep_listening=True, with_ack=ANTENNA_ATTACHED)
+                response = cubesat.radio.receive(keep_listening=True, with_ack=ANTENNA_ATTACHED)
                 response_text = str(response, "ascii")
 
                 # if the response is correct, print an acknowledgement
@@ -48,18 +55,18 @@ async def radio_test(cubesat, result_dict, testidx):
 
         return success, success_count, attempts
 
-    if testidx == "Receive":
+    if test_type == "Receive":
         receive_success = False
         receive_count = 0
 
         print("Reception Test: Awaiting Groundstation Message (25s)")
         for i in range(attempts):
             # await a response for 5 seconds
-            heard_something = await pycubed.await_rx(timeout=5.0)
+            heard_something = await cubesat.radio.await_rx(timeout=5.0)
 
             if heard_something:
                 # get response
-                response = pycubed.receive(keep_listening=True, with_ack=ANTENNA_ATTACHED)
+                response = cubesat.radio.receive(keep_listening=True, with_ack=ANTENNA_ATTACHED)
                 response_text = str(response, "ascii")
 
                 # if the response is correct, print an acknowledgement
@@ -74,14 +81,15 @@ async def radio_test(cubesat, result_dict, testidx):
                 print("Attempt", str(i + 1) + ": Did not receive \"" + receive_text + "\"")
         return receive_success, receive_count, attempts
 
-    if testidx == "Send":
+    if test_type == "Send":
         send_success = False
         send_count = 0
 
         print("Transmission Test: Sending Message to Groundstation (25s)")
         for i in range(attempts):
-            # send beacon text and keep listening
-            pycubed.send(send_text, keep_listening=True)
+            # send beacon text and keep listening - wait 5 seconds
+            cubesat.radio.send(send_text, keep_listening=True)
+            time.sleep(5)
 
             # if the message is sent correctly, print an acknowledgement
             message_sent = input("Does the groundstation confirm correct reception? (Y/N)")
@@ -95,18 +103,22 @@ async def radio_test(cubesat, result_dict, testidx):
         return send_success, send_count, attempts
 
 
-def run(cubesat, hardware_dict, result_dict, antenna_attached):
+def run(hardware_dict, result_dict, antenna_attached):
+    """
+    Check that the correct hardware is initialized and run tests
+    """
+
     ANTENNA_ATTACHED = antenna_attached
     # if no Radio detected, update result dictionary and return
     if not hardware_dict['Radio']:
-        result_dict['Radio_Receive_Beacon'] = ('Cannot test reception; no Radio detected', False)
-        result_dict['Radio_Send_Beacon'] = ('Cannot test sending beacon; no Radio detected', False)
+        result_dict['Radio_ReceiveBeacon'] = ('Cannot test reception; no Radio detected', False)
+        result_dict['Radio_SendBeacon'] = ('Cannot test sending beacon; no Radio detected', False)
         return result_dict
 
     # if no antenna detected, update result dictionary and return
     if not ANTENNA_ATTACHED:
-        result_dict['Radio_Receive_Beacon'] = ('Cannot test reception; no Antenna attached', False)
-        result_dict['Radio_Send_Beacon'] = ('Cannot test sending beacon; no Antenna attached', False)
+        result_dict['Radio_ReceiveBeacon'] = ('Cannot test reception; no Antenna attached', False)
+        result_dict['Radio_SendBeacon'] = ('Cannot test sending beacon; no Antenna attached', False)
         return result_dict
 
     # if Radio and antenna detected, run other tests
@@ -117,28 +129,29 @@ def run(cubesat, hardware_dict, result_dict, antenna_attached):
         print("You may run this file again once you have the groundstation up and running.")
 
         # test transmission and reception together
-        result, count, attempts = radio_test(cubesat, result_dict, "Both")
+        result, count, attempts = radio_test("Both")
         result_val_string = ("Succeeded in sending and receiving message" + str(count) +
                              "/" + str(attempts) + " times.")
 
+        # if the test succeeds
+        if result:
+            # update result_dict
+            result_dict['Radio_ReceiveBeacon'] = (result_val_string, True)
+            result_dict['Radio_SendBeacon'] = (result_val_string, True)
+            return result_dict
+
         # if the test fails
-        if not result:
+        else:
             # individually test reception and update result dict
-            receive_result, receive_count, receive_attempts = radio_test(cubesat, result_dict, "Receive")
+            receive_result, receive_count, receive_attempts = radio_test("Receive")
             receive_val_string = ("Succeeded in receiving message" + str(receive_count) +
                                   "/" + str(receive_attempts) + " times.")
-            result_dict['Radio_Receive_Beacon'] = (receive_val_string, receive_result)
+            result_dict['Radio_ReceiveBeacon'] = (receive_val_string, receive_result)
 
             # individually test transmission and update result dict
-            send_result, send_count, send_attempts = radio_test(cubesat, result_dict, "Send")
+            send_result, send_count, send_attempts = radio_test("Send")
             send_val_string = ("Succeeded in sending message" + str(send_count) +
                                "/" + str(send_attempts) + " times.")
-            result_dict['Radio_Send_Beacon'] = (send_val_string, send_result)
+            result_dict['Radio_SendBeacon'] = (send_val_string, send_result)
 
-        # if the test succeeds
-        else:
-            # update result_dict
-            result_dict['Radio_Receive_Beacon'] = (result_val_string, True)
-            result_dict['Radio_Send_Beacon'] = (result_val_string, True)
-
-    return result_dict
+            return result_dict
