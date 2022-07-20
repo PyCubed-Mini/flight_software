@@ -6,6 +6,8 @@ Torque Driver Test
 """
 
 import time
+from lib import pycubed as cubesat
+from math import sqrt
 
 # voltage level constants; set between 0 and 1
 # get these values from the hex values in doc
@@ -13,10 +15,11 @@ v1 = 0x0A
 v2 = 0x15
 v3 = 0x1F
 
-def user_test(driver, coilidx):
+def user_test(coil_index):
     """
     All user interaction happens in this function
-    Set wait times, change print statement and input formatting, etc.
+    Set wait times, prompt user, collect magnetometer data for
+    different voltage levels
     """
 
     # wait times
@@ -30,59 +33,51 @@ def user_test(driver, coilidx):
     projected_voltage3 = 4 * 1.285 * int(v3) / 64
 
     # set up the test
-    print("Testing Coil", str(coilidx), "for the following voltage levels: " +
+    print("Testing Coil", str(coil_index), "for the following voltage levels: " +
           str(projected_voltage1) + ", " + str(projected_voltage2 + ", " +
           str(projected_voltage3)))
-    print("Please retrieve a magnetometer. A cellphone app will also work. " +
-          "Waiting", str(wait_time), "seconds.")
+    print("Waiting", str(wait_time), "seconds.")
     time.sleep(wait_time)
 
     # figure out what pins we need to be reading
     # conduct the test
-    print("Beginning the test now. Please note the magnetometer readings for the next",
-          str(driver_time * 3), "seconds.")
+    print("Beginning the test now. Testing for", str(driver_time * 3), "seconds.")
 
     # test each voltage level
-    driver.vout(v1)
+    cubesat.coildriver_vout(coil_index, v1)
     time.sleep(driver_time)
-    driver.vout(v2)
-    time.sleep(driver_time)
-    driver.vout(v3)
-    time.sleep(driver_time)
+    mag_reading1 = cubesat.magnetic()
 
-    # check user input
+    cubesat.coildriver_vout(coil_index, v2)
+    time.sleep(driver_time)
+    mag_reading2 = cubesat.magnetic()
+
+    cubesat.coildriver_vout(coil_index, v3)
+    time.sleep(driver_time)
+    mag_reading3 = cubesat.magnetic()
+
+    # calculate total magnetic reading
     print("Data Collection Complete")
-    success = input("Did the magnetometer readings increase over the last " +
-                    str(driver_time * 3) + " seconds? (Y/N): ")
+    mag_total1 = sqrt(mag_reading1[0] ** 2 + mag_reading1[1] ** 2 + mag_reading1[2] ** 2)
+    mag_total2 = sqrt(mag_reading2[0] ** 2 + mag_reading2[1] ** 2 + mag_reading2[2] ** 2)
+    mag_total3 = sqrt(mag_reading3[0] ** 2 + mag_reading3[1] ** 2 + mag_reading3[2] ** 2)
 
-    return success
+    # if magnetometer readings are increasing over time, return true. else, false
+    return (mag_total3 > mag_total2 and mag_total2 > mag_total1)
 
 
-def voltage_levelx(cubesat, result_dict, coilidx):
+def voltage_levelx(result_dict, coil_index):
     """
     All automation happens in this function
-    Select burnwire and voltage level
     Process user test results and update the result dictionary accordingly
     """
 
-    # choose a coil driver or exit
-    driver = 0
-    if coilidx == 'X':
-        driver = cubesat.drv_x
-    elif coilidx == 'Y':
-        driver = cubesat.drv_y
-    elif coilidx == 'Z':
-        driver = cubesat.drv_z
-    else:
-        print("Not a valid coil.")
-        return result_dict
-
     # set string constant
-    result_key = 'CoilDriver' + str(coilidx) + '_VoltTest'
+    result_key = 'CoilDriver' + str(coil_index)
 
     # get user test result values, process and print results
-    result = user_test(driver, coilidx)
-    result_val_string = ('Tested Coil Driver ' + str(coilidx) + ' at the following voltage levels: ' +
+    result = user_test(coil_index)
+    result_val_string = ('Tested Coil Driver ' + str(coil_index) + ' at the following voltage levels: ' +
                          str(v1) + ', ' + str(v2) + ', ' + str(v3) + '.')
     if result:
         result_val_string += 'Magnetometer readings changed as expected with voltage levels.'
@@ -94,44 +89,27 @@ def voltage_levelx(cubesat, result_dict, coilidx):
     return result_dict
 
 
-def run(cubesat, hardware_dict, result_dict):
+def run(hardware_dict, result_dict):
+    """
+    Check that the correct hardware is initialized and run tests
+    """
+
     # if no Coil X detected, update result dictionary
-    if not hardware_dict['Coil X']:
-        result_dict['CoilX_Volt1'] = ('Cannot test Coil X at ' +
-                                      v1 + '; no Coil X detected', False)
-        result_dict['CoilX_Volt2'] = ('Cannot test Coil X at ' +
-                                      v2 + '; no Coil X detected', False)
-        result_dict['CoilX_Volt3'] = ('Cannot test Coil X at ' +
-                                      v3 + '; no Coil X detected', False)
+    if not hardware_dict['CoilDriverX']:
+        result_dict['CoilDriverX'] = ('No Coil Driver X detected', False)
     else:  # Coil X detected, run tests
-        voltage_levelx(cubesat, result_dict, 'X')
-        voltage_levelx(cubesat, result_dict, 'X')
-        voltage_levelx(cubesat, result_dict, 'X')
+        voltage_levelx(result_dict, 'X')
 
     # if no Coil Y detected, update result dictionary
-    if not hardware_dict['Coil Y']:
-        result_dict['CoilY_Volt1'] = ('Cannot test Coil Y at ' +
-                                      v1 + '; no Coil Y detected', False)
-        result_dict['CoilY_Volt2'] = ('Cannot test Coil Y at ' +
-                                      v2 + '; no Coil Y detected', False)
-        result_dict['CoilY_Volt3'] = ('Cannot test Coil Y at ' +
-                                      v3 + '; no Coil Y detected', False)
+    if not hardware_dict['CoilDriverY']:
+        result_dict['CoilDriverY'] = ('No Coil Driver Y detected', False)
     else:  # Coil X detected, run tests
-        voltage_levelx(cubesat, result_dict, 'Y')
-        voltage_levelx(cubesat, result_dict, 'Y')
-        voltage_levelx(cubesat, result_dict, 'Y')
+        voltage_levelx(result_dict, 'Y')
 
     # if no Coil Z detected, update result dictionary
-    if not hardware_dict['Coil Z']:
-        result_dict['CoilZ_Volt1'] = ('Cannot test Coil Z at ' +
-                                      v1 + '; no Coil Z detected', False)
-        result_dict['CoilZ_Volt2'] = ('Cannot test Coil Z at ' +
-                                      v2 + '; no Coil Z detected', False)
-        result_dict['CoilZ_Volt3'] = ('Cannot test Coil Z at ' +
-                                      v3 + '; no Coil Z detected', False)
+    if not hardware_dict['CoilDriverZ']:
+        result_dict['CoilDriverZ'] = ('No Coil Driver Z detected', False)
     else:  # Coil X detected, run tests
-        voltage_levelx(cubesat, result_dict, 'Z')
-        voltage_levelx(cubesat, result_dict, 'Z')
-        voltage_levelx(cubesat, result_dict, 'Z')
+        voltage_levelx(result_dict, 'Z')
 
     return result_dict
