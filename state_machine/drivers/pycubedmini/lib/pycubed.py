@@ -380,7 +380,6 @@ class _Satellite:
 
     def _init_sun_minusy(self):
         """ Initialize the -Y sun sensor on I2C2 """
-        # TODO: check address; -Y, -Z, +Z initialize with 3 diff addresses for I2C2
         try:
             self._sun_yn = adafruit_tsl2561.TSL2561(self.i2c2, address=0x29)
             self.sun_yn.enabled = False
@@ -390,7 +389,6 @@ class _Satellite:
 
     def _init_sun_minusz(self):
         """ Initialize the -Z sun sensor on I2C2 """
-        # TODO: check address; -Y, -Z, +Z initialize with 3 diff addresses for I2C2
         try:
             self._sun_zn = adafruit_tsl2561.TSL2561(self.i2c2, address=0x39)
             self.sun_zn.enabled = False
@@ -400,7 +398,6 @@ class _Satellite:
 
     def _init_sun_minusx(self):
         """ Initialize the -X sun sensor on I2C1 """
-        # TODO: check address; -X, +Y, +Z initialize with 3 diff addresses for I2C1
         try:
             self._sun_xn = adafruit_tsl2561.TSL2561(self.i2c1, address=0x49)
             self.sun_xn.enabled = False
@@ -410,7 +407,6 @@ class _Satellite:
 
     def _init_sun_plusy(self):
         """ Initialize the +Y sun sensor on I2C1 """
-        # TODO: check address; -X, +Y, +Z initialize with 3 diff addresses for I2C1
         try:
             self._sun_yp = adafruit_tsl2561.TSL2561(self.i2c1, address=0x29)
             self.sun_yp.enabled = False
@@ -430,7 +426,6 @@ class _Satellite:
 
     def _init_sun_plusx(self):
         """ Initialize the +X sun sensor on I2C2 """
-        # TODO: check address; -Y, -Z, +Z initialize with 3 diff addresses for I2C2
         try:
             self._sun_xp = adafruit_tsl2561.TSL2561(self.i2c2, address=0x49)
             self.sun_xp.enabled = False
@@ -441,9 +436,10 @@ class _Satellite:
     def _init_coildriverx(self):
         """ Initialize Coil Driver X on I2C3, set mode and voltage """
         try:
-            self._drv_x = drv8830.DRV8830(i2c_bus=self.i2c3, address=0x62)  # U7
+            self._drv_x = drv8830.DRV8830(self.i2c3, 0x62)  # U7
+            # TODO: initialization automatically sets mode to STANDBY
+            # do we want STANDBY or COAST
             self.drv_x.mode = drv8830.BridgeControl.COAST
-            self.drv_x.vout = 0x06  # minimum voltage value, DRV8830 lib
             self.hardware['CoilDriverX'] = True
         except Exception as e:
             print('[ERROR][Initializing H-Bridge U7]', e)
@@ -452,8 +448,9 @@ class _Satellite:
         """ Initialize Coil Driver Y on I2C3, set mode and voltage """
         try:
             self._drv_y = drv8830.DRV8830(self.i2c3, 0x68)  # U8
+            # TODO: initialization automatically sets mode to STANDBY
+            # do we want STANDBY or COAST
             self.drv_y.mode = drv8830.BridgeControl.COAST
-            self.drv_y.vout = 0x06  # minimum voltage value, DRV8830 lib
             self.hardware['CoilDriverY'] = True
         except Exception as e:
             print('[ERROR][Initializing H-Bridge U8]', e)
@@ -462,8 +459,9 @@ class _Satellite:
         """ Initialize Coil Driver Z on I2C3, set mode and voltage """
         try:
             self._drv_z = drv8830.DRV8830(self.i2c3, 0x60)  # U9
+            # TODO: initialization automatically sets mode to STANDBY
+            # do we want STANDBY or COAST
             self.drv_z.mode = drv8830.BridgeControl.COAST
-            self.drv_z.vout = 0x06  # minimum voltage value, DRV8830 lib
             self.hardware['CoilDriverZ'] = True
         except Exception as e:
             print('[ERROR][Initializing H-Bridge U9]', e)
