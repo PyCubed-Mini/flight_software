@@ -6,6 +6,8 @@ PyCubed Mini mainboard-v02 for Pocketqube Mission
 
 from lib import pycubed
 import tests
+import tests.i2c_scan
+import tests.logging_test
 import tests.imu_test
 import tests.radio_test
 import tests.sun_sensor_test
@@ -47,9 +49,12 @@ result_dict = {
 print("Running System Check...")
 print("Hardware Successfully Initialized. Printing results...")
 print("")
-for entry in hardware_dict:
-    print(str(entry.key), str(entry.val))
+for entry in hardware_dict.items():
+    print(str(entry[0]) + ": " + str(entry[1]))
 print("")
+
+# complete an i2c scan: return all devices connected to each i2c bus
+tests.i2c_scan.run()
 
 # test logging
 tests.logging_test.run(hardware_dict, result_dict)
@@ -67,17 +72,23 @@ tests.coil_test.run(hardware_dict, result_dict)
 burnwire_input = input("Would you like to test the burnwires? (Y/N): ")
 if burnwire_input == "Y":
     tests.burnwire_test.run(hardware_dict, result_dict)
+else:
+    result_dict['Burnwire1'] = ("Not tested.", False)
+    result_dict['Burnwire2'] = ("Not tested.", False)
 
 # ask to test radio
 radio_input = input("Would you like to test the radio? (Y/N): ")
 if radio_input == "Y":
     antenna_attached = input("Is an antenna attached to the radio? (Y/N): ")
     tests.radio_test.run(hardware_dict, result_dict, antenna_attached)
+else:
+    result_dict['Radio_ReceiveBeacon'] = ("Not tested.", False)
+    result_dict['Radio_SendBeacon'] = ("Not tested.", False)
 
 # end test and print results
 print("")
 print("Test has concluded. Printing results...")
 print("")
-for entry in hardware_dict:
-    print(str(entry.key), str(entry.val))
+for entry in result_dict.items():
+    print(str(entry[0]) + ": " + str(entry[1]))
 print("")
