@@ -8,6 +8,7 @@ Burnwire Deployment Test
 import time
 from lib import pycubed as cubesat
 
+
 def user_test():
     """
     All user interaction happens in this function
@@ -21,9 +22,12 @@ def user_test():
     print("You can test using a multimeter or fishing line.")
     print("If using a multimeter, please read the voltage between the" +
           "ground pin (GND) and burnwire pin on the -Z solar board.")
+
     # get user input for voltage level and duration
-    voltage = float(input("At what voltage do you want to run the burnwire IC? (up to 3.3V): "))
-    burn_time = int(input("For how long do you want to run the burnwire test? "))
+    voltage = float(input(
+        "At what voltage do you want to run the burnwire IC? (up to 3.3V): "))
+    burn_time = int(input(
+        "For how long do you want to run the burnwire test? "))
     print("Test starting in", str(wait_time), "seconds.")
     time.sleep(wait_time)
     return voltage, burn_time
@@ -41,7 +45,8 @@ def burnwire_test(result_dict, burnnum):
 
     # calculate voltage level and conduct the test
     voltage_level = voltage / 3.3
-    cubesat.burn(burn_num=str(burnnum), dutycycle=voltage_level, duration=burn_time)
+    cubesat.burn(burn_num=str(burnnum), dutycycle=voltage_level,
+                 duration=burn_time)
 
     # gather user input and return results
     print("Burnwire Test Complete")
