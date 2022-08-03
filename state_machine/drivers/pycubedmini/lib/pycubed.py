@@ -241,7 +241,7 @@ class _Satellite:
     # Set hardware attributes to None
     # Needed for things not to crash
     _i2c1, _i2c2, _i2c3, _spi, _sd, _neopixel = None, None, None, None, None, None
-    _imu, _radio, _sun_yn, _sun_zn, _sun_xn = None, None, None, None, None, None
+    _imu, _radio, _sun_yn, _sun_zn, _sun_xn = None, None, None, None, None 
     _sun_yp, _sun_zp, _sun_xp, _drv_x, _drv_y = None, None, None, None, None
     _drv_z, _burnwire1, _burnwire2 = None, None, None
 
