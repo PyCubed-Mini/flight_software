@@ -25,10 +25,11 @@ class task(Task):
     sun_sensor_failed = False
 
     async def main_task(self):
+        failed = False
+        # start calculating time steps
         if self.last is None:
             self.last = time.monotonic()
             return
-
         t = time.monotonic()
         delta_t = t - self.last
 
@@ -42,9 +43,12 @@ class task(Task):
                 self.debug('Something went wrong trying to read from a sun sensor')
                 self.debug(f'Error: {e}')
                 self.sun_sensor_failed = True
+            failed = True
         nr_mag = igrf_eci(t, self.eci_state[0:3])
         nr_sun = approx_sun_position_ECI(t)
-        mekf.step(w, delta_t, nr_mag, nr_sun, br_mag, br_sun)
+
+        if not failed:
+            mekf.step(w, delta_t, nr_mag, nr_sun, br_mag, br_sun)
 
         # propogate ECI position
         self.eci_state = orbital_mechanics.propogate(self.eci_state, delta_t, integration_step=5)

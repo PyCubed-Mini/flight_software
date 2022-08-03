@@ -3,7 +3,7 @@
 # Fifth order approximatin.
 
 try:
-    import ulab as np
+    import ulab.numpy as np
 except ImportError:
     import numpy as np
 import math
