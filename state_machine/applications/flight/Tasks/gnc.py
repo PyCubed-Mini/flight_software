@@ -21,7 +21,7 @@ class task(Task):
 
     rgb_on = False
     last = None
-    eci_state = array([6871, -6571, -7071, 2, -10, 3])
+    eci_state = array([6871, -6571, -7071, 2, -10, 3])  # [x, y, z, vx, vy, vz]
 
     async def main_task(self):
         if self.last is None:
