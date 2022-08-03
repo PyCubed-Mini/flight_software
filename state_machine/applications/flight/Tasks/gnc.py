@@ -21,7 +21,7 @@ class task(Task):
 
     rgb_on = False
     last = None
-    r_eci = array([6871, -6571, -7071])
+    eci_state = array([6871, -6571, -7071, 2, -10, 3])
 
     async def main_task(self):
         if self.last is None:
@@ -35,12 +35,12 @@ class task(Task):
         w = cubesat.gyro()
         br_mag = cubesat.magnetic()
         br_sun = cubesat.sun_vector()
-        nr_mag = igrf_eci(t, self.r_eci)
+        nr_mag = igrf_eci(t, self.eci_state[0:3])
         nr_sun = approx_sun_position_ECI(t)
         mekf.step(w, delta_t, nr_mag, nr_sun, br_mag, br_sun)
 
         # propogate ECI position
-        self.r_eci = orbital_mechanics.propogate(self.r_eci, delta_t, integration_step=5)
+        self.eci_state = orbital_mechanics.propogate(self.eci_state, delta_t, integration_step=5)
 
         # compute control
         m = bcross(cubesat.magnetic(), cubesat.gyro())
