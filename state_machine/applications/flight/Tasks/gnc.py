@@ -22,6 +22,7 @@ class task(Task):
     rgb_on = False
     last = None
     eci_state = array([6871, -6571, -7071, 2, -10, 3])  # [x, y, z, vx, vy, vz]
+    sun_sensor_failed = False
 
     async def main_task(self):
         if self.last is None:
@@ -34,7 +35,13 @@ class task(Task):
         # update mekf
         w = cubesat.gyro()
         br_mag = cubesat.magnetic()
-        br_sun = cubesat.sun_vector()
+        try:
+            br_sun = cubesat.sun_vector()
+        except cubesat.HardwareInitException as e:
+            if not self.sun_sensor_failed:
+                self.debug('Something went wrong trying to read from a sun sensor')
+                self.debug(f'Error: {e}')
+                self.sun_sensor_failed = True
         nr_mag = igrf_eci(t, self.eci_state[0:3])
         nr_sun = approx_sun_position_ECI(t)
         mekf.step(w, delta_t, nr_mag, nr_sun, br_mag, br_sun)

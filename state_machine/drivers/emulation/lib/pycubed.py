@@ -125,6 +125,13 @@ def sun_vector():
 
 
 """
+Define HardwareInitException
+"""
+class HardwareInitException(Exception):
+    pass
+
+
+"""
 Radio related functions
 """
 # send = _cubesat.radio.send
