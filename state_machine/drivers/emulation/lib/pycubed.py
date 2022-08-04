@@ -1,3 +1,8 @@
+# force numpy to use one thread
+import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+
 import time
 import tasko
 
