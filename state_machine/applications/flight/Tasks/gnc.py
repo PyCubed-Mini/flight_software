@@ -5,11 +5,8 @@ from lib.gnc.IGRF import igrf_eci
 from lib.gnc.sun_position import approx_sun_position_ECI
 import lib.gnc.orbital_mechanics as orbital_mechanics
 import lib.gnc.mekf as mekf
+import lib.gnc.gnc_state as gnc_state
 import time
-try:
-    from ulab.numpy import array
-except ImportError:
-    from numpy import array
 
 
 def toStr(arr):
@@ -21,7 +18,6 @@ class task(Task):
 
     rgb_on = False
     last = None
-    eci_state = array([6871, -6571, -7071, 2, -10, 3])  # [x, y, z, vx, vy, vz]
     sun_sensor_failed = False
 
     async def main_task(self):
@@ -44,14 +40,14 @@ class task(Task):
                 self.debug(f'Error: {e}')
                 self.sun_sensor_failed = True
             failed = True
-        nr_mag = igrf_eci(t, self.eci_state[0:3])
+        nr_mag = igrf_eci(t, gnc_state.eci_state[0:3])
         nr_sun = approx_sun_position_ECI(t)
 
         if not failed:
             mekf.step(w, delta_t, nr_mag, nr_sun, br_mag, br_sun)
 
         # propogate ECI position
-        self.eci_state = orbital_mechanics.propogate(self.eci_state, delta_t, integration_step=5)
+        gnc_state.eci_state = orbital_mechanics.propogate(gnc_state.eci_state, delta_t, integration_step=5)
 
         # compute control
         m = bcross(cubesat.magnetic(), cubesat.gyro())
