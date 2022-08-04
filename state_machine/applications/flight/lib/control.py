@@ -1,6 +1,6 @@
 try:
     from ulab.numpy import eye as identity, array, linalg, cross, dot as matmul, isfinite, all
-except Exception:
+except ImportError:
     from numpy import identity, array, linalg, cross, matmul, isfinite, all
 
 def bcross(b, ω, k=7e-4):

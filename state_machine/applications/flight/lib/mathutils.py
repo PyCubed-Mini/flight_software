@@ -1,6 +1,6 @@
 try:
     from ulab.numpy import array, ndarray, zeros, eye as I, dot as matmul  # noqa: E741 (I is not ambiguous)
-except Exception:
+except ImportError:
     from numpy import array, ndarray, zeros, eye as I, matmul  # noqa: E741 (I is not ambiguous)
 
 def block(S):

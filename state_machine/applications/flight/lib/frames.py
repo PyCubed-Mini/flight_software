@@ -4,7 +4,7 @@ try:
 except ImportError:
     import numpy as np
     from numpy import cos, sin, pi, sqrt, array
-from math import atan2 as arctan2 
+from math import atan2 as arctan2
 
 J2000 = 946684800  # unix timestamp for the Julian date 2000-01-01
 MJD_ZERO = 2400000.5  # Offset of Modified Julian Days representation with respect to Julian Days.
