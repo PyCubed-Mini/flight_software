@@ -702,6 +702,7 @@ class RFM9x:
 
         timed_out = False
         while not self.tx_done():
+            await tasko.sleep(0.01)
             if (time.monotonic() - start) >= self.xmit_timeout:
                 timed_out = True
                 break
@@ -751,7 +752,7 @@ class RFM9x:
                 self.retry_counter += 1  # ADDED FOR PYCUBED
                 print('no uhf ack, sending again...')
                 # delay by random amount before next try
-                tasko.sleep(self.ack_wait + self.ack_wait * random.random())
+                await tasko.sleep(self.ack_wait + self.ack_wait * random.random())
             retries_remaining -= 1
             # set retry flag in packet header
             self.flags |= _RH_FLAGS_RETRY
@@ -831,7 +832,7 @@ class RFM9x:
                     ):
                         # delay before sending Ack to give receiver a chance to get ready
                         if self.ack_delay is not None:
-                            tasko.sleep(self.ack_delay)
+                            time.sleep(self.ack_delay)
                         # send ACK packet to sender (data is b'!')
                         self.send(
                             b"!",
