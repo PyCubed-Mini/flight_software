@@ -629,10 +629,10 @@ class RFM9x:
 
     async def await_rx(self, timeout=60):
         """Wait timeout seconds to until you recieve a message, return true if message received false otherwise"""
-        _t = time.monotonic()+timeout
+        _t = time.monotonic() + timeout
         while not self.rx_done():
             if time.monotonic() < _t:
-                yield
+                await tasko.sleep(0.01)
             else:
                 # Timed out
                 return False
@@ -706,8 +706,6 @@ class RFM9x:
             if (time.monotonic() - start) >= self.xmit_timeout:
                 timed_out = True
                 break
-            else:
-                yield
         # Listen again if necessary and return the result packet.
         if keep_listening:
             self.listen()
@@ -868,57 +866,3 @@ class RFM9x:
         _msb=self._read_u8(_RH_RF95_REG_14_RX_HEADER_CNT_VALUE_MSB)
         _lsb=self._read_u8(_RH_RF95_REG_15_RX_HEADER_CNT_VALUE_LSB)
         return _msb|_lsb
-
-    def update(self,d,u):
-        for k, v in u.items():
-            if isinstance(v, dict):
-                d[k] = update(d.get(k, {}), v)
-            else:
-                d[k] = v
-        yield d
-
-    def findall(self,p, s):
-        '''Yields all the positions of
-        the pattern p in the string s.'''
-        i = s.find(p)
-        while i != -1:
-            yield i
-            i = s.find(p, i+1)
-
-    def receive_all(self, only_for_me=True,debug=False):
-        msg=[]
-        self.idle()
-        fifo_length = self._read_u8(_RH_RF95_REG_13_RX_NB_BYTES)
-        if fifo_length > 0:
-            current_addr = self._read_u8(_RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR)
-            self._write_u8(_RH_RF95_REG_0D_FIFO_ADDR_PTR, _RH_RF95_REG_00_FIFO)
-            self._read_into(_RH_RF95_REG_00_FIFO,self._bigbuffer)
-            self._write_from(_RH_RF95_REG_00_FIFO, bytearray(256))
-            self._write_u8(_RH_RF95_REG_0D_FIFO_ADDR_PTR,_RH_RF95_REG_00_FIFO)
-            self.listen()
-            # Clear interrupt.
-            self._write_u8(_RH_RF95_REG_12_IRQ_FLAGS, 0xFF)
-
-            self._bigbuf=bytes(self._bigbuffer)
-            if debug: print(self._bigbuf)
-
-            packetindex=[]
-            for l in self.vr3x_permutations:
-                for f in self.findall(bytes(l),self._bigbuf):
-                    packetindex.append((bytes(l),f))
-            if debug: print(packetindex)
-            packetindex.sort(key=lambda x: x[1])
-
-            for i,j in enumerate(packetindex):
-                if i < len(packetindex)-1:
-                    msg.append(self._bigbuf[j[1]:packetindex[i+1][1]])
-                else:
-                    msg.append(self._bigbuf[j[1]:current_addr+fifo_length])
-        else:
-            self.listen()
-            # Clear interrupt.
-            self._write_u8(_RH_RF95_REG_12_IRQ_FLAGS, 0xFF)
-        if only_for_me:
-            return [i for i in msg if msg[0] is self.node]
-        else:
-            return msg
