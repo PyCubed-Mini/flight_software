@@ -6,7 +6,7 @@ from numpy.linalg import norm
 
 sys.path.insert(0, './state_machine/applications/flight')
 
-from lib.orbital_mechanics import rk4, propogate, d_state, MEAN_RADIUS
+from lib.gnc.orbital_mechanics import rk4, propogate, d_state, MEAN_RADIUS
 
 class TestRK4(unittest.TestCase):
 

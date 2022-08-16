@@ -6,7 +6,7 @@ sys.path.insert(0, './state_machine/drivers/emulation')
 sys.path.insert(0, './state_machine/applications/flight')
 sys.path.insert(0, './state_machine/frame')
 
-from lib.control import bcross
+from lib.gnc.control import bcross
 
 
 class BCrossTest(unittest.TestCase):

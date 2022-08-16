@@ -5,7 +5,7 @@ from testutils import timestamp, assert_vector_similar
 
 sys.path.insert(0, './state_machine/applications/flight')
 
-from lib.IGRF import igrf, igrf_eci
+from lib.gnc.IGRF import igrf, igrf_eci
 
 EARTH_RADIUS = 6.378136300e3  # km
 

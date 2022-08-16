@@ -3,12 +3,12 @@
 # Fifth order approximatin.
 
 try:
-    import ulab as np
+    import ulab.numpy as np
 except ImportError:
     import numpy as np
 import math
 
-import lib.frames as frames
+import lib.gnc.frames as frames
 
 def reset_array(input_array):
     for i in range(len(input_array)):

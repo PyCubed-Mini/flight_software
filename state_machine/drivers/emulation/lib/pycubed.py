@@ -1,3 +1,8 @@
+# force numpy to use one thread
+import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+
 import time
 import tasko
 
@@ -55,7 +60,7 @@ class Satellite:
         # to provide more interesting output from the b-cross controller.
         self._accel = [1.0, 2.0, 3.0]
         self._mag = [4.0, 3.0, 1.0]
-        self._gyro = [0.0, 0.0, 0.0]
+        self._gyro = [3.0, 5.0, -0.3]
         self._torque = [0, 0, 0]
         self._cpu_temp = 30
         self.sim = False
@@ -126,6 +131,13 @@ Sun Sensor Functions
 def sun_vector():
     """Returns the sun pointing vector in the body frame"""
     return array([0, 0, 0])
+
+
+"""
+Define HardwareInitException
+"""
+class HardwareInitException(Exception):
+    pass
 
 
 """

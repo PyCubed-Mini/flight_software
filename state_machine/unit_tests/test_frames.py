@@ -6,7 +6,7 @@ from datetime import datetime as dt, timezone
 
 sys.path.insert(0, './state_machine/applications/flight')
 
-import lib.frames as frames
+import lib.gnc.frames as frames
 
 EARTH_RADIUS = 6371  # Earth radius (km)
 LEO = 2000  # Low Earth Orbit Altitude Limit (km)
