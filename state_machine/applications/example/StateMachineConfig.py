@@ -5,7 +5,7 @@ from Tasks.transition_task import task as transition
 
 from TransitionFunctions import announcer
 
-from config import config  # noqa: F401
+from states import config  # noqa: F401
 
 TaskMap = {
     'Battery': battery,
