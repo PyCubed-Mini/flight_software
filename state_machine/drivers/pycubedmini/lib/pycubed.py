@@ -21,6 +21,7 @@ import adafruit_tsl2561
 import time
 import tasko
 from ulab.numpy import array
+import config
 
 class device:
     """
@@ -73,17 +74,15 @@ class _Satellite:
     c_downlink = multiBitFlag(register=_DWNLINK, lowest_bit=0, num_bits=8)
     c_logfail = multiBitFlag(register=_LOGFAIL, lowest_bit=0, num_bits=8)
 
-    UHF_FREQ = 433.0
+    UHF_FREQ = config.driver_config['FREQ']
 
     instance = None
     data_cache = {}
 
     # Satellite attributes
-    LOW_VOLTAGE = 3.0
-    # Max opperating temp on specsheet for ATSAMD51J19A (Celsius)
-    HIGH_TEMP = 125
-    # Min opperating temp on specsheet for ATSAMD51J19A (Celsius)
-    LOW_TEMP = -40
+    LOW_VOLTAGE = config.driver_config['LOW_VOLTAGE']
+    HIGH_TEMP = config.driver_config['HIGH_TEMP']
+    LOW_TEMP = config.driver_config['LOW_TEMP']
 
     def __new__(cls):
         """

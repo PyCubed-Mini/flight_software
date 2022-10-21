@@ -6,7 +6,7 @@ from Tasks.time_task import task as time
 from Tasks.gnc import task as gnc
 from Tasks.radio import task as radio
 from TransitionFunctions import announcer, low_power_on, low_power_off
-from config import config  # noqa: F401
+from states import config  # noqa: F401
 
 TaskMap = {
     "Safety": safety,

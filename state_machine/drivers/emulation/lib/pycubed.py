@@ -1,5 +1,6 @@
 import time
 import tasko
+import config
 
 import lib.reader as reader
 try:
@@ -54,12 +55,10 @@ class Satellite:
     BOOTTIME = time.monotonic()
     data_cache = {}
 
-    # Max opperating temp on specsheet for ATSAMD51J19A (Celsius)
-    HIGH_TEMP = 125
-    # Min opperating temp on specsheet for ATSAMD51J19A (Celsius)
-    LOW_TEMP = -40
-    # Low battery voltage threshold
     LOW_VOLTAGE = 4.0
+    LOW_VOLTAGE = config.driver_config['LOW_VOLTAGE']
+    HIGH_TEMP = config.driver_config['HIGH_TEMP']
+    LOW_TEMP = config.driver_config['LOW_TEMP']
 
     def __init__(self):
         self.task = None
@@ -132,10 +131,6 @@ class Satellite:
 
     @property
     def imu(self):
-        return True
-
-    @property
-    def neopixel(self):
         return True
 
     @property
