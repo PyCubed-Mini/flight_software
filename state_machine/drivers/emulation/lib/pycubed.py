@@ -137,9 +137,5 @@ class Satellite:
     def neopixel(self):
         return True
 
-    @property
-    def neopixel(self):
-        return True
-
 
 cubesat = Satellite()
