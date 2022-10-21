@@ -1,4 +1,3 @@
-from email.mime import application
 from config.driver import driver_config as dc
 
 driver_config = dc
