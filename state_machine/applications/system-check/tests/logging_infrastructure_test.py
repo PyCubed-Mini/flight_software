@@ -1,6 +1,7 @@
 from logging import clear_all_storage, get_buffer, log
 from os import listdir
 from lib.pycubed import cubesat
+import time
 
 DEFAULT_FOLDER = "debug"
 
@@ -8,7 +9,7 @@ DEFAULT_FOLDER = "debug"
 sd_card_directory = "/sd/"
 
 
-def run(result_dict):
+async def run(result_dict):
     """
     If the SD card has been properly initialized, log 1800 characters
     100 characters at a time, with a max file size of 1000 characters.
@@ -17,8 +18,8 @@ def run(result_dict):
 
     if not cubesat.sdcard:
         print("Cannot test Logging Infrastructure; no SD Card detected")
-        # result_dict["LoggingInfrastructure_Test"] = (
-        #     "Cannot test Logging Infrastructure; no SD Card detected", None)
+        result_dict["LoggingInfrastructure_Test"] = (
+            "Cannot test Logging Infrastructure; no SD Card detected", None)
 
     print("Starting logging infrastructure test...")
     clear_all_storage()
@@ -47,7 +48,7 @@ def run(result_dict):
         # want to write 2 files worth of msg
         while length <= max_file_size * 2:
             # buffered logs to folders
-            log(msg, max_file_size=max_file_size, folder=folders[i],
+            await log(msg, max_file_size=max_file_size, folder=folders[i],
                 buffer=True, max_buffer_size=200)
 
             # check if the buffer is emptied out
@@ -107,9 +108,16 @@ def run(result_dict):
         folder_logs_contents = listdir(f'{sd_card_directory}/{folder}/logs')
         print(f"logs in /sd/{folder} directory: {folder_logs_contents}")
 
-    result_string = ""
+    if folder1_written and folder2_written:
+        result_string = ("Both folders have been written to correctly." +
+                         " Please perform any necessary manual checks.")
+    else:
+        result_string = ("Some folder was not written to correctly." + 
+                         " Please check above messages to troubleshoot.")
     print(result_string)
-    # result_dict["LoggingInfrastructure_Test"] = (
-    #     result_string, logfile1_created and logfile2_created)
+    result_dict["LoggingInfrastructure_Test"] = (
+        result_string, folder1_written and folder2_written)
     print("Logging Infrastructure Test complete.\n")
     clear_all_storage()
+
+    return result_dict
