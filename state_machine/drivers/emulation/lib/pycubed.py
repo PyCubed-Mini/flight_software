@@ -2,6 +2,7 @@ import time
 import tasko
 
 import lib.reader as reader
+import random
 try:
     from ulab.numpy import array
 except ImportError:
@@ -22,7 +23,8 @@ class Radio:
         _ = await tasko.sleep(timeout * 0.5)
         return True
 
-    def receive(self, *, keep_listening=True, with_header=False, with_ack=False, timeout=None, debug=False):
+    async def receive(self, *, keep_listening=True, with_header=False, with_ack=False, timeout=None, debug=False):
+        await tasko.sleep(0.02)
         return "something we recieved over radio"
 
     @property
@@ -37,6 +39,13 @@ class Radio:
 
     def send_with_ack(self, packet, keep_listening=True):
         return True
+
+class Burnwire:
+    def __init__(self):
+        pass
+
+    def duty_cycle(self, duty_cycle):
+        assert 0 <= duty_cycle <= 0xffff
 
 
 """
@@ -63,11 +72,15 @@ class Satellite:
     def __init__(self):
         self.task = None
         self.scheduled_tasks = {}
+
         self.radio = Radio()
+        self.burnwire1 = Burnwire()
+
         self.data_cache = {}
         self.c_gs_resp = 1
         self.c_state_err = 0
         self.c_boot = None
+        self.f_contact = True
 
         # magnetometer and accelerometer chosen to be arbitrary non zero, non parallel values
         # to provide more interesting output from the b-cross controller.
@@ -76,7 +89,10 @@ class Satellite:
         self._gyro = [0.0, 0.0, 0.0]
         self._torque = [0, 0, 0]
         self._cpu_temp = 30
+
+        # debug utilities
         self.sim = False
+        self.randomize_voltage = False
 
     @property
     def acceleration(self):
@@ -117,7 +133,9 @@ class Satellite:
 
     @property
     def battery_voltage(self):
-        return 6.4
+        reader.read(self)
+        random_offset = - 0.5 + random.random() if self.randomize_voltage else 0
+        return self.LOW_VOLTAGE + 0.01 + random_offset
 
     def log(self, str):
         """Logs to sd card"""
@@ -136,6 +154,28 @@ class Satellite:
     @property
     def neopixel(self):
         return True
+
+    async def burn(self, dutycycle=0.5, duration=1):
+        """
+        Activates the burnwire for a given duration and dutycycle.
+        """
+        try:
+            burnwire = self.burnwire1
+            self.RGB = (255, 0, 0)
+
+            # set the burnwire's dutycycle; begins the burn
+            burnwire.duty_cycle = int(dutycycle * (0xFFFF))
+            await tasko.sleep(duration)  # wait for given duration
+
+            # set burnwire's dutycycle back to 0; ends the burn
+            burnwire.duty_cycle = 0
+            self.RGB = (0, 0, 0)
+
+            self._deployA = True  # sets deployment variable to true
+            return True
+        except Exception as e:
+            print('[ERROR][Burning]', e)
+            return False
 
 
 cubesat = Satellite()
