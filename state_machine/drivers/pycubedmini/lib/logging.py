@@ -75,8 +75,9 @@ def get_logfile_name(logfile_starttime, folder):
     """
     format the logfile_name based on logfile_starttime and return
     """
+    print(logfile_starttime)
     logfile_endtime = (logfile_starttime + time_interval) // (10**9)
-    bootcount = cubesat.get_boot_count()
+    bootcount = cubesat.c_boot
     return (f"{folder}_log_reboot{bootcount:03}" +
             f"_start{logfile_starttime:06}_end{logfile_endtime:06}.txt")
 
@@ -89,7 +90,7 @@ def new_log(logfile_starttime, folder=DEFAULT_FOLDER):
 
     # After you fill up 1000 files (~ 1 GB), overwrite old files
     logfile_starttime = start_time // (10**9)
-    logfile_name = get_logfile_name(logfile_starttime)
+    logfile_name = get_logfile_name(logfile_starttime, folder=folder)
     logfile_name_dir = get_logfile_name_dir(logfile_starttime, folder)
 
     # if logfile_name doesn't exist, create it
@@ -172,7 +173,7 @@ def unbuffered_log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER):
         if write_new_file:
             print(f"it's been {time_interval} ns, writing a new file")
             # create a new logfile
-            logfile_starttime = new_log(logfile_starttime)
+            logfile_starttime = new_log(logfile_starttime, folder=folder)
             # get the logfile_name_dir again based on new logfile_starttime
             logfile_name_dir = get_logfile_name_dir(logfile_starttime, folder)
 
@@ -181,7 +182,7 @@ def unbuffered_log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER):
             logfile.write(msg)
 
 
-def log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER, buffer=False,
+async def log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER, buffer=False,
         max_buffer_size=MAX_BUFFER_SIZE):
     """
     Handle buffered vs. unbuffered logs
