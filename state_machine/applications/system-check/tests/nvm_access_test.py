@@ -1,18 +1,11 @@
 from lib.pycubed import cubesat
 
-    # c_boot = multiBitFlag(register=_BOOTCNT, lowest_bit=0, num_bits=8)
-    # c_state_err = multiBitFlag(register=_RSTERRS, lowest_bit=4, num_bits=4)
-    # c_vbus_rst = multiBitFlag(register=_RSTERRS, lowest_bit=0, num_bits=4)
-    # c_deploy = multiBitFlag(register=_DCOUNT, lowest_bit=0, num_bits=8)
-    # c_downlink = multiBitFlag(register=_DWNLINK, lowest_bit=0, num_bits=8)
-    # c_logfail = multiBitFlag(register=_LOGFAIL, lowest_bit=0, num_bits=8)
-
-nvm_counters = {"c_boot":cubesat.c_boot,
-                "c_state_err":cubesat.c_state_err,
-                "c_vbus_rst":cubesat.c_vbus_rst,
-                "c_deploy":cubesat.c_deploy,
-                "c_downlink":cubesat.c_downlink,
-                "c_logfail":cubesat.c_logfail}
+nvm_counters = {"c_boot": cubesat.c_boot,
+                "c_state_err": cubesat.c_state_err,
+                "c_vbus_rst": cubesat.c_vbus_rst,
+                "c_deploy": cubesat.c_deploy,
+                "c_downlink": cubesat.c_downlink,
+                "c_logfail": cubesat.c_logfail}
 nvm_counters_items = sorted(nvm_counters.items())
 nvm_counters_values = sorted(nvm_counters.values())
 
@@ -23,7 +16,7 @@ def verify_bits(counterstr, counter):
         return verify_four_bits(counter)
     else:
         return verify_eight_bits(counter)
-    
+
 def verify_four_bits(counter):
     return 0 <= counter < 16
 
