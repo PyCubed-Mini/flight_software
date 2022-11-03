@@ -7,6 +7,7 @@ PyCubed Mini mainboard-v02 for Pocketqube Mission
 
 import tests
 import tests.i2c_scan
+import tests.nvm_access_test
 import tests.sd_test
 # import tests.logging_infrastructure_test
 import tests.imu_test
@@ -47,6 +48,8 @@ result_dict = {
     "CoilDriverY": ("", None),
     "CoilDriverZ": ("", None),
     "Burnwire": ("", None),
+    "NVM_CounterAccess": ("", None),
+    "NVM_CounterValuesInRange": ("", None),
 }
 
 """
@@ -63,6 +66,7 @@ all_tests = [
     ("Coil Driver Test", "coil", tests.coil_test, True),
     ("Burnwire Test", "burn", tests.burnwire_test, False),
     ("I2C_Scan", "i2c", tests.i2c_scan, False),
+    ("NVM Test", "nvm", tests.nvm_access_test, True)
 ]
 
 def test_options(tests):
