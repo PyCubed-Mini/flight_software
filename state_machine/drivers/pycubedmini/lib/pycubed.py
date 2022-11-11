@@ -134,7 +134,7 @@ class _Satellite:
         self.drv_y
         self.drv_z
         self.burnwire1
-        self.c_boot += 1 # increment boot count    
+        self.c_boot += 1  # increment boot count
 
     @device
     def i2c1(self):
@@ -436,7 +436,7 @@ class _Satellite:
     def timeon(self):
         """ return the time on a monotonic clock """
         return int(time.monotonic()) - self.BOOTTIME
-    
+
     def reset_nvm(self):
         """ reset all flags and counters in non volatile memory """
         # Define NVM flags
