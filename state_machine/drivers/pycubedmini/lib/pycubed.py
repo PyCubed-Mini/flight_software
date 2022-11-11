@@ -16,7 +16,7 @@ import pwmio
 import bmx160
 import drv8830
 from adafruit_pcf8523 import PCF8523
-from bitflags import bitFlag, multiBitFlag
+from bitflags import bitFlag, multiBitFlag, multiByte
 from micropython import const
 import adafruit_tsl2561
 import time
@@ -67,12 +67,23 @@ class _Satellite:
     f_free2 = bitFlag(register=_FLAG, bit=4)
 
     # Define NVM counters
-    c_boot = multiBitFlag(register=_BOOTCNT, lowest_bit=0, num_bits=8)
+    c_boot = multiByte(num_bytes=2, lowest_register=_BOOTCNT)
+    # c_boot = multiBitFlag(register=_BOOTCNT, lowest_bit=0, num_bits=8)
     c_state_err = multiBitFlag(register=_RSTERRS, lowest_bit=4, num_bits=4)
     c_vbus_rst = multiBitFlag(register=_RSTERRS, lowest_bit=0, num_bits=4)
     c_deploy = multiBitFlag(register=_DCOUNT, lowest_bit=0, num_bits=8)
     c_downlink = multiBitFlag(register=_DWNLINK, lowest_bit=0, num_bits=8)
     c_logfail = multiBitFlag(register=_LOGFAIL, lowest_bit=0, num_bits=8)
+
+    # Define maxvals
+    max_vals = {
+        "c_boot": c_boot.maxval,
+        "c_state_err": c_state_err.maxval,
+        "c_vbus_rst": c_vbus_rst.maxval,
+        "c_deploy": c_deploy.maxval,
+        "c_downlink": c_downlink.maxval,
+        "c_logfail": c_logfail.maxval,
+    }
 
     UHF_FREQ = 433.0
 
@@ -123,6 +134,7 @@ class _Satellite:
         self.drv_y
         self.drv_z
         self.burnwire1
+        self.c_boot += 1 # increment boot count    
 
     @device
     def i2c1(self):
@@ -424,17 +436,21 @@ class _Satellite:
     def timeon(self):
         """ return the time on a monotonic clock """
         return int(time.monotonic()) - self.BOOTTIME
+    
+    def reset_nvm(self):
+        """ reset all flags and counters in non volatile memory """
+        # Define NVM flags
+        self.f_contact = 0
+        self.f_burn = 0
+        self.f_free1 = 0
+        self.f_free2 = 0
 
-    def reset_boot_count(self):
-        """ reset boot count in non-volatile memory (nvm) """
+        # Define NVM counters
         self.c_boot = 0
-
-    def incr_logfail_count(self):
-        """ increment logfail count in non-volatile memory (nvm) """
-        self.c_logfail += 1
-
-    def reset_logfail_count(self):
-        """ reset logfail count in non-volatile memory (nvm) """
+        self.c_state_err = 0
+        self.c_vbus_rst = 0
+        self.c_deploy = 0
+        self.c_downlink = 0
         self.c_logfail = 0
 
 
