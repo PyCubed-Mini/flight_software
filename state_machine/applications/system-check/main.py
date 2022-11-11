@@ -119,6 +119,6 @@ tasko.add_task(main_test(), 1)
 tasko.run()
 
 nvm_reset = input(f"\n\nWould you like to reset non-volatile memory? Select {bold}(y){normal} for yes," +
-                    f" or {bold}(n){normal} for no:\n~> ")
+                  f" or {bold}(n){normal} for no:\n~> ")
 if nvm_reset.lower() == 'y':
     cubesat.reset_nvm()
