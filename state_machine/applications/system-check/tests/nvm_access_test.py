@@ -1,124 +1,133 @@
-"""
-Python system check script for PyCubed satellite board
-PyCubed Mini mainboard-v02 for Pocketqube Mission
-* Author(s): Yashika Batra
-"""
-# print acknowledgement that test has started
-
 from lib.pycubed import cubesat
-import tests
-import tests.i2c_scan
-import tests.nvm_access_test
-import tests.sd_test
-# import tests.logging_infrastructure_test
-import tests.imu_test
-# import tests.radio_test
-import tests.sun_sensor_test
-import tests.coil_test
-import tests.burnwire_test
-import supervisor
-import tasko
-from print_utils import bold, normal, red, green
 
-supervisor.disable_autoreload()
+# initialize dictionary for nvm counters, list for values and key/value tuples
+nvm_counters = {"c_boot": cubesat.c_boot,
+                "c_state_err": cubesat.c_state_err,
+                "c_vbus_rst": cubesat.c_vbus_rst,
+                "c_deploy": cubesat.c_deploy,
+                "c_downlink": cubesat.c_downlink,
+                "c_logfail": cubesat.c_logfail,
+                }
+nvm_counters_items = sorted(nvm_counters.items())
+nvm_counters_values = sorted(nvm_counters.values())
 
-# initialize hardware_dict and result_dict
-result_dict = {
-    "LoggingInfrastructure_Test": ("", None),
-    "Basic_SDCard_Test": ("", None),
-    "IMU_AccGravity": ("", None),
-    "IMU_GyroStationary": ("", None),
-    "IMU_GyroRotating": ("", None),
-    "IMU_MagMagnet": ("", None),
-    "IMU_Temp": ("", None),
-    "Radio_ReceiveBeacon": ("", None),
-    "Radio_SendBeacon": ("", None),
-    "Sun-Y_Dark": ("", None),
-    "Sun-Y_Light": ("", None),
-    "Sun-Z_Dark": ("", None),
-    "Sun-Z_Light": ("", None),
-    "Sun-X_Dark": ("", None),
-    "Sun-X_Light": ("", None),
-    "Sun+Y_Dark": ("", None),
-    "Sun+Y_Light": ("", None),
-    "Sun+Z_Dark": ("", None),
-    "Sun+Z_Light": ("", None),
-    "Sun+X_Dark": ("", None),
-    "Sun+X_Light": ("", None),
-    "CoilDriverX": ("", None),
-    "CoilDriverY": ("", None),
-    "CoilDriverZ": ("", None),
-    "Burnwire": ("", None),
-    "NVM_CounterAccess": ("", None),
-    "NVM_CounterValuesInRange": ("", None),
-    "NVM_CounterInterference": ("", None),
-}
-
-"""
-Each test group contains:
-    - full name
-    - nick name
-    - class reference
-    - if it is to be run in default mode
-"""
-all_tests = [
-    ("SD Test", "sd", tests.sd_test, True),
-    ("IMU Test", "imu", tests.imu_test, True),
-    ("Sun Sensor Test", "sun", tests.sun_sensor_test, True),
-    ("Coil Driver Test", "coil", tests.coil_test, True),
-    ("Burnwire Test", "burn", tests.burnwire_test, False),
-    ("I2C_Scan", "i2c", tests.i2c_scan, False),
-    ("NVM Test", "nvm", tests.nvm_access_test, True),
-    # ("Logging Infrastructure Test", "log", tests.logging_infrastructure_test, True),
-]
-
-def test_options(tests):
-    print(f'\n\nSelect: {bold}(a){normal} for all, {bold}(d){normal} for default, or select a specific test:')
-    for (name, nick, _, _) in tests:
-        print(f"  {bold}({nick}){normal}: {name}")
-
-def results_to_str(results):
-    failed = []
-    passed = []
-    for (test_name, (test_description, test_success)) in results.items():
-        if test_success is not None:
-            if test_success:
-                passed.append(f"{test_name}: {test_description}")
-            else:
-                failed.append(f"{test_name}: {test_description}")
-    newline = '\n'  # f strings can't contain \
-
-    def bullet(str):
-        '''Utility to a bullet point before a string'''
-        return f'  - {str}'
-
-    return f"""{red}{bold}Failed Tests:{normal}
-{newline.join(map(bullet, failed))}
-{green}{bold}Passed Tests:{normal}
-{newline.join(map(bullet, passed))}"""
+# initialize dictionary for nvm flags, list for values and key/value tuples
+nvm_flags = {"f_contact": cubesat.f_contact,
+             "f_burn":  cubesat.f_burn,
+             "f_free1": cubesat.f_free1,
+             "f_free2": cubesat.f_free2,
+             }
+nvm_flags_items = sorted(nvm_flags.items())
+nvm_flags_values = sorted(nvm_flags.values())
 
 
-async def main_test():
-    test_options(all_tests)
-    choice = input("~> ")
-    if choice == 'a' or choice == 'd':
-        for (_, _, test, default) in all_tests:
-            if (choice == 'a' or default):
-                await test.run(result_dict)
+def verify_counter_bits(counterstr, counter):
+    """ verify that the counter is within a certain range of values """
+    # if the counter doesn't exist, return None
+    if counter is None:
+        return None
+    # if the counter exists, check that its values are between 0 and maxval - 1
     else:
-        for (_, nick, test, _) in all_tests:
-            if choice == nick:
-                await test.run(result_dict)
-                break
+        return 0 <= counter <= cubesat.max_vals[counterstr]
+
+
+def verify_flag_bits(flagstr, flag):
+    """ verify that the flag is set to either 0 or 1 """
+    # if the flag doesn't exist, return None
+    if flag is None:
+        return None
+    # if the flag exists, check that its value is either 0 or 1
+    else:
+        return 0 <= flag <= 1
+
+
+def check_nvm_counter_overflow():
+    """ check that updating any particular nvm counter doesn't affect
+    other parts of non volatile memory """
+    original_values = nvm_counters_items.copy()
+    remaining_valid = True
+    
+    # set each counter in nvm to their maximum values
+    for i in range(len(nvm_counters_items)):
+        (counterstr, counter) = nvm_counters_items[i]
+        nvm_counters[counterstr] = cubesat.max_vals[counterstr]
+    
+    # change each multibit counter to 0, make sure no other counter changed
+    for i in range(len(nvm_counters_items)):
+        # set some counter i to 0
+        (counterstr, counter) = nvm_counters_items[i]
+        nvm_counters[counterstr] = 0
+        # check that the remaining counter vals are the same
+        remaining_valid = (nvm_counters_items[:i] == original_values[:i] and
+                           nvm_counters_items[i+1:] == original_values[i+1:])
+        # set counter i back to max
+        nvm_counters[counterstr] = cubesat.max_vals[counterstr]
+    
+    if not remaining_valid:
+        return remaining_valid, "Counter", counterstr, "interferes with others."
+    else:
+        return remaining_valid, "No interference in NVM between counters."
+
+
+async def run(result_dict):
+    """
+    Test to make sure all nvm counters and flags exist, and that their values are in range.
+    Also check that multibit flags do not interfere with each other or reference the same
+    region in non volatile memory.
+    """
+
+    print("Starting NVM Test...")
+    nvm_counters_exist = [(counter is not None) for counter in nvm_counters_values]
+    nvm_flags_exist = [(flag is not None) for flag in nvm_flags_values]
+
+    counter_flag_access = not (False in nvm_counters_exist) and not (False in nvm_flags_exist)
+    counter_flag_access_string = ""
+    if counter_flag_access:
+        counter_flag_access_string = "All counters and flags are accessible."
+    else:
+        counter_flag_access_string = "The following counters / flags are None:"
+    print(nvm_counters_items, nvm_flags_items)
+
+    nvm_counters_inrange = [verify_counter_bits(counterstr, counter) for counterstr, counter in nvm_counters_items]
+    nvm_flags_inrange = [verify_flag_bits(flagstr, flag) for flagstr, flag in nvm_flags_items]
+
+    counter_flag_inrange = (not (False in nvm_counters_inrange)) and (not (False in nvm_flags_inrange))
+    counter_flag_inrange_string = ""
+    if counter_flag_inrange:
+        counter_flag_inrange_string = "All existing counters and flags are in range."
+    else:
+        counter_flag_inrange_string = "The following counters / flags are not in range:"
+
+    for i in range(len(nvm_counters_values)):
+        # if all counters are accessible, we'll never reach this
+        # we only add to counter_flag_access_string if something is inaccessible
+        if not nvm_counters_exist[i]:
+            counter_flag_access_string += nvm_counters_items[i][0] + "; "
+        # if the counter exists, verify its values
         else:
-            print('Invalid selection')
+            # if all counters are in range, we'll never reach this
+            # we only add to counter_flag_inrange_string if something is out of range
+            if not nvm_counters_inrange[i]:
+                counter_flag_inrange_string += nvm_counters_items[i][0] + "; "
+    
+    for i in range(len(nvm_flags_values)):
+        # if all flags are accessible, we'll never reach this
+        # we only add to counter_flag_access_string if something is inaccessible
+        if not nvm_flags_exist[i]:
+            counter_flag_access_string += nvm_flags_items[i][0] + "; "
+        # if the flag exists, verify its values
+        else:
+            # if all flags are in range, we'll never reach this
+            # we only add to counter_flag_inrange_string if something is out of range
+            if not nvm_flags_inrange[i]:
+                print(nvm_flags_inrange[i])
+                counter_flag_inrange_string += nvm_flags_items[i][0] + "; "
 
-    print(results_to_str(result_dict))
+    result_dict["NVM_CounterFlagAccess"] = (counter_flag_access_string, counter_flag_access)
+    result_dict["NVM_CounterFlagValuesInRange"] = (counter_flag_inrange_string, counter_flag_inrange)
+    counter_overflow, counter_overflow_string = check_nvm_counter_overflow()
+    result_dict["NVM_CounterInterference"] = (counter_overflow_string, counter_overflow)
 
-tasko.add_task(main_test(), 1)
-tasko.run()
+    print("NVM Test Complete.\n")
 
-nvm_reset = input(f"\n\nWould you like to reset non-volatile memory? Select {bold}(y){normal} for yes," +
-                    f" or {bold}(n){normal} for no:\n~> ")
-if nvm_reset.lower() == 'y':
-    cubesat.reset_nvm()
+    return result_dict
