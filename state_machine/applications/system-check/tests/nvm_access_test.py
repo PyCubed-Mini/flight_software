@@ -1,74 +1,124 @@
+"""
+Python system check script for PyCubed satellite board
+PyCubed Mini mainboard-v02 for Pocketqube Mission
+* Author(s): Yashika Batra
+"""
+# print acknowledgement that test has started
+
 from lib.pycubed import cubesat
+import tests
+import tests.i2c_scan
+import tests.nvm_access_test
+import tests.sd_test
+# import tests.logging_infrastructure_test
+import tests.imu_test
+# import tests.radio_test
+import tests.sun_sensor_test
+import tests.coil_test
+import tests.burnwire_test
+import supervisor
+import tasko
+from print_utils import bold, normal, red, green
 
-nvm_counters = {"c_boot": cubesat.c_boot,
-                "c_state_err": cubesat.c_state_err,
-                "c_vbus_rst": cubesat.c_vbus_rst,
-                "c_deploy": cubesat.c_deploy,
-                "c_downlink": cubesat.c_downlink,
-                "c_logfail": cubesat.c_logfail}
-nvm_counters_items = sorted(nvm_counters.items())
-nvm_counters_values = sorted(nvm_counters.values())
+supervisor.disable_autoreload()
 
-def verify_bits(counterstr, counter):
-    if counter is None:
-        return None
-    if counterstr == "c_state_err" or counterstr == "c_vbus_rst":
-        return verify_four_bits(counter)
+# initialize hardware_dict and result_dict
+result_dict = {
+    "LoggingInfrastructure_Test": ("", None),
+    "Basic_SDCard_Test": ("", None),
+    "IMU_AccGravity": ("", None),
+    "IMU_GyroStationary": ("", None),
+    "IMU_GyroRotating": ("", None),
+    "IMU_MagMagnet": ("", None),
+    "IMU_Temp": ("", None),
+    "Radio_ReceiveBeacon": ("", None),
+    "Radio_SendBeacon": ("", None),
+    "Sun-Y_Dark": ("", None),
+    "Sun-Y_Light": ("", None),
+    "Sun-Z_Dark": ("", None),
+    "Sun-Z_Light": ("", None),
+    "Sun-X_Dark": ("", None),
+    "Sun-X_Light": ("", None),
+    "Sun+Y_Dark": ("", None),
+    "Sun+Y_Light": ("", None),
+    "Sun+Z_Dark": ("", None),
+    "Sun+Z_Light": ("", None),
+    "Sun+X_Dark": ("", None),
+    "Sun+X_Light": ("", None),
+    "CoilDriverX": ("", None),
+    "CoilDriverY": ("", None),
+    "CoilDriverZ": ("", None),
+    "Burnwire": ("", None),
+    "NVM_CounterAccess": ("", None),
+    "NVM_CounterValuesInRange": ("", None),
+    "NVM_CounterInterference": ("", None),
+}
+
+"""
+Each test group contains:
+    - full name
+    - nick name
+    - class reference
+    - if it is to be run in default mode
+"""
+all_tests = [
+    ("SD Test", "sd", tests.sd_test, True),
+    ("IMU Test", "imu", tests.imu_test, True),
+    ("Sun Sensor Test", "sun", tests.sun_sensor_test, True),
+    ("Coil Driver Test", "coil", tests.coil_test, True),
+    ("Burnwire Test", "burn", tests.burnwire_test, False),
+    ("I2C_Scan", "i2c", tests.i2c_scan, False),
+    ("NVM Test", "nvm", tests.nvm_access_test, True),
+    # ("Logging Infrastructure Test", "log", tests.logging_infrastructure_test, True),
+]
+
+def test_options(tests):
+    print(f'\n\nSelect: {bold}(a){normal} for all, {bold}(d){normal} for default, or select a specific test:')
+    for (name, nick, _, _) in tests:
+        print(f"  {bold}({nick}){normal}: {name}")
+
+def results_to_str(results):
+    failed = []
+    passed = []
+    for (test_name, (test_description, test_success)) in results.items():
+        if test_success is not None:
+            if test_success:
+                passed.append(f"{test_name}: {test_description}")
+            else:
+                failed.append(f"{test_name}: {test_description}")
+    newline = '\n'  # f strings can't contain \
+
+    def bullet(str):
+        '''Utility to a bullet point before a string'''
+        return f'  - {str}'
+
+    return f"""{red}{bold}Failed Tests:{normal}
+{newline.join(map(bullet, failed))}
+{green}{bold}Passed Tests:{normal}
+{newline.join(map(bullet, passed))}"""
+
+
+async def main_test():
+    test_options(all_tests)
+    choice = input("~> ")
+    if choice == 'a' or choice == 'd':
+        for (_, _, test, default) in all_tests:
+            if (choice == 'a' or default):
+                await test.run(result_dict)
     else:
-        return verify_eight_bits(counter)
-
-def verify_four_bits(counter):
-    return 0 <= counter < 16
-
-def verify_eight_bits(counter):
-    return 0 <= counter < 256
-
-def incr_logfail_count(cubesat):
-    """ increment logfail count in non-volatile memory (nvm) """
-    cubesat.c_logfail += 1
-
-def reset_logfail_count(cubesat):
-    """ reset logfail count in non-volatile memory (nvm) """
-    cubesat.c_logfail = 0
-
-async def run(result_dict):
-    """
-    For each i2c device, print addresses of connected devices
-    """
-    print("Starting NVM Test...")
-
-    nvm_counters_exist = [(counter is not None) for counter in nvm_counters_values]
-    counter_access = not (False in nvm_counters_exist)
-    counter_access_string = ""
-    if counter_access:
-        counter_access_string = "All counters are accessible."
-    else:
-        counter_access_string = "The following counters are None:"
-
-    print(nvm_counters_items)
-    nvm_counters_inrange = [verify_bits(counterstr, counter) for counterstr, counter in nvm_counters_items]
-    counter_inrange = not (False in nvm_counters_inrange)
-    counter_inrange_string = ""
-    if counter_inrange:
-        counter_inrange_string = "All existing counters are in range."
-    else:
-        counter_inrange_string = "The following counters are not in range:"
-
-    for i in range(len(nvm_counters_values)):
-        # if all counters are accessible, we'll never reach this
-        # we only add to counter_access_string if something is inaccessible
-        if not nvm_counters_exist[i]:
-            counter_access_string += nvm_counters_items[i][0] + ";"
-        # if the counter exists, verify its values
+        for (_, nick, test, _) in all_tests:
+            if choice == nick:
+                await test.run(result_dict)
+                break
         else:
-            # if all counters are in range, we'll never reach this
-            # we only add to counter_inrange_string if something is out of range
-            if not nvm_counters_inrange[i]:
-                counter_inrange_string += nvm_counters_items[i][0] + ";"
+            print('Invalid selection')
 
-    result_dict["NVM_CounterAccess"] = (counter_access_string, counter_access)
-    result_dict["NVM_CounterValuesInRange"] = (counter_inrange_string, counter_inrange)
+    print(results_to_str(result_dict))
 
-    print("NVM Test Complete.\n")
+tasko.add_task(main_test(), 1)
+tasko.run()
 
-    return result_dict
+nvm_reset = input(f"\n\nWould you like to reset non-volatile memory? Select {bold}(y){normal} for yes," +
+                    f" or {bold}(n){normal} for no:\n~> ")
+if nvm_reset.lower() == 'y':
+    cubesat.reset_nvm()
