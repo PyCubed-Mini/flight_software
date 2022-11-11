@@ -46,12 +46,12 @@ def check_nvm_counter_overflow():
     other parts of non volatile memory """
     original_values = nvm_counters_items.copy()
     remaining_valid = True
-    
+
     # set each counter in nvm to their maximum values
     for i in range(len(nvm_counters_items)):
         (counterstr, counter) = nvm_counters_items[i]
         nvm_counters[counterstr] = cubesat.max_vals[counterstr]
-    
+
     # change each multibit counter to 0, make sure no other counter changed
     for i in range(len(nvm_counters_items)):
         # set some counter i to 0
@@ -59,10 +59,10 @@ def check_nvm_counter_overflow():
         nvm_counters[counterstr] = 0
         # check that the remaining counter vals are the same
         remaining_valid = (nvm_counters_items[:i] == original_values[:i] and
-                           nvm_counters_items[i+1:] == original_values[i+1:])
+                           nvm_counters_items[i + 1:] == original_values[i + 1:])
         # set counter i back to max
         nvm_counters[counterstr] = cubesat.max_vals[counterstr]
-    
+
     if not remaining_valid:
         return remaining_valid, "Counter", counterstr, "interferes with others."
     else:
@@ -109,7 +109,7 @@ async def run(result_dict):
             # we only add to counter_flag_inrange_string if something is out of range
             if not nvm_counters_inrange[i]:
                 counter_flag_inrange_string += nvm_counters_items[i][0] + "; "
-    
+
     for i in range(len(nvm_flags_values)):
         # if all flags are accessible, we'll never reach this
         # we only add to counter_flag_access_string if something is inaccessible
