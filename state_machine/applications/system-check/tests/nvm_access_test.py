@@ -1,3 +1,8 @@
+"""
+Python System Check Module for PyCubed Mini satellite board
+Nonvolatile Memory Access and Interference Test
+"""
+
 from lib.pycubed import cubesat
 
 # initialize dictionary for nvm counters, list for values and key/value tuples
@@ -8,17 +13,17 @@ nvm_counters = {"c_boot": cubesat.c_boot,
                 "c_downlink": cubesat.c_downlink,
                 "c_logfail": cubesat.c_logfail,
                 }
-nvm_counters_items = sorted(nvm_counters.items())
-nvm_counters_values = sorted(nvm_counters.values())
+# items and values will be initialized with the same order by default
+nvm_counters_items = list(nvm_counters.items())
+nvm_counters_values = list(nvm_counters.values())
 
 # initialize dictionary for nvm flags, list for values and key/value tuples
 nvm_flags = {"f_contact": cubesat.f_contact,
              "f_burn":  cubesat.f_burn,
-             "f_free1": cubesat.f_free1,
-             "f_free2": cubesat.f_free2,
              }
-nvm_flags_items = sorted(nvm_flags.items())
-nvm_flags_values = sorted(nvm_flags.values())
+# items and values will be initialized with the same order by default
+nvm_flags_items = list(nvm_flags.items())
+nvm_flags_values = list(nvm_flags.values())
 
 
 def verify_counter_bits(counterstr, counter):
