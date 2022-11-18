@@ -3,11 +3,7 @@ from os import listdir
 from lib.pycubed import cubesat
 import time
 
-DEFAULT_FOLDER = "debug"
-
-# for spoofing
-sd_card_directory = "/sd/"
-
+sd_card_directory = "/sd"
 
 async def run(result_dict):
     """
@@ -22,8 +18,10 @@ async def run(result_dict):
             "Cannot test Logging Infrastructure; no SD Card detected", None)
 
     print("Starting logging infrastructure test...")
+
+    print(f"Initial, /sd/: {listdir(sd_card_directory)}")
     clear_all_storage()
-    print(f"/sd/ directory: {listdir(sd_card_directory)}")
+    print(f"After clearing storage, /sd/: {listdir(sd_card_directory)}")
 
     # unbuffered write
     print("Testing buffered vs. unbuffered writes...")
@@ -40,26 +38,29 @@ async def run(result_dict):
     msgs = [msg1, msg2]
 
     for i in range(len(folders)):
-        length = 0
-        max_file_size = 1000
+        filenum = 0
         buffer_written = 0
-        msg = msgs[i]
+        max_buffer_size = 200
+        msg = msgs[i] * 10
 
-        # want to write 2 files worth of msg
-        while length <= max_file_size * 2:
-            # buffered logs to folders
-            await log(msg, max_file_size=max_file_size, folder=folders[i],
-                buffer=True, max_buffer_size=200)
+        # write 2 files worth of messages (sleep 5 seconds between writes)
+        while filenum < 2:
+            # write buffered logs
+            log(msg, folder=folders[i], buffer=True, max_buffer_size=max_buffer_size)
 
-            # check if the buffer is emptied out
+            # if buffer is empty, increment count
             if sd_buffer[folders[i]] == "":
-                # increment the number of times it was emptied out
                 buffer_written += 1
-            # increment length
-            length += len(msg)
 
-        # if the buffer works for all folders, buffer_working = True
-        buffer_working = buffer_working and buffer_written >= 5
+            # increment number of files written
+            filenum += 1
+
+            # sleep (waiting for the next file's creation)
+            time.sleep(5)
+
+        # check if the buffer was emptied out the correct number of times
+        buffer_working = buffer_working and buffer_written >= len(msg) // max_buffer_size - 1
+
 
     # check if folder1 has all the correct logfiles
     if folders[0] in listdir(sd_card_directory):
@@ -105,8 +106,9 @@ async def run(result_dict):
     print("Testing unbuffered vs. buffered writes is complete.")
     print(f"/sd/ directory: {listdir(sd_card_directory)}")
     for folder in listdir(sd_card_directory):
-        folder_logs_contents = listdir(f'{sd_card_directory}/{folder}/logs')
-        print(f"logs in /sd/{folder} directory: {folder_logs_contents}")
+        if folder in folders:
+            folder_logs_contents = listdir(f'{sd_card_directory}/{folder}/logs/')
+            print(f"logs in /sd/{folder} directory: {folder_logs_contents}")
 
     if folder1_written and folder2_written:
         result_string = ("Both folders have been written to correctly." +
@@ -118,6 +120,7 @@ async def run(result_dict):
     result_dict["LoggingInfrastructure_Test"] = (
         result_string, folder1_written and folder2_written)
     print("Logging Infrastructure Test complete.\n")
-    clear_all_storage()
 
-    return result_dict
+    print(f"Ending, /sd/: {listdir(sd_card_directory)}")
+    clear_all_storage()
+    print(f"After Clearing Storage, /sd/: {listdir(sd_card_directory)}")
