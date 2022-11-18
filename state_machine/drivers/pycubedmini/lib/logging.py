@@ -251,7 +251,7 @@ def clear_storage(folder):
     if INFO_FILENAME in listdir(f"{sd_card_directory}/{folder}"):
         remove(info_filename_dir)
 
-    # rmdir(f"{sd_card_directory}/{folder}")
+    rmdir(f"{sd_card_directory}/{folder}")
 
 
 def clear_all_storage():
