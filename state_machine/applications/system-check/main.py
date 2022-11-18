@@ -36,13 +36,17 @@ all_tests = [
     ("Burnwire Test", "burn", tests.burnwire_test, False),
     ("I2C_Scan", "i2c", tests.i2c_scan, False),
     ("NVM Test", "nvm", tests.nvm_access_test, True),
-    ("Logging Infrastructure Test", "log", tests.logging_infrastructure_test, True),
+    ("Logging Infrastructure Test", "log",
+     tests.logging_infrastructure_test, True),
 ]
 
+
 def test_options(tests):
-    print(f'\n\nSelect: {bold}(a){normal} for all, {bold}(d){normal} for default, or select a specific test:')
+    print(f'\n\nSelect: {bold}(a){normal} for all, {bold}(d){normal} ' +
+          'for default, or select a specific test:')
     for (name, nick, _, _) in tests:
         print(f"  {bold}({nick}){normal}: {name}")
+
 
 def results_to_str(results):
     failed = []
@@ -85,7 +89,8 @@ async def main_test():
 tasko.add_task(main_test(), 1)
 tasko.run()
 
-nvm_reset = input(f"\n\nWould you like to reset non-volatile memory? Select {bold}(y){normal} for yes," +
+nvm_reset = input("\n\nWould you like to reset non-volatile memory? " +
+                  f"Select {bold}(y){normal} for yes," +
                   f" or {bold}(n){normal} for no:\n~> ")
 if nvm_reset.lower() == 'y':
     cubesat.reset_nvm()
