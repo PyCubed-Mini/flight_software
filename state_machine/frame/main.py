@@ -1,12 +1,17 @@
+import sys
+if '/lib' not in sys.path:
+    sys.path.insert(0, './lib')
+
 import traceback
-from lib.pycubed import cubesat
+from pycubed import cubesat
 from state_machine import state_machine
+from config import initial
 
 
 print('Running...')
 try:
     # should run forever
-    state_machine.start('Normal')
+    state_machine.start(initial)
 except Exception as e:
     formated_exception = traceback.format_exception(e, e, e.__traceback__)
     for line in formated_exception:

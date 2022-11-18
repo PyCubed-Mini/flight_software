@@ -1,7 +1,5 @@
 """
-CircuitPython driver for PyCubed satellite board
-PyCubed Mini mainboard-v02 for Pocketqube Mission
-* Author(s): Max Holliday, Yashika Batra
+CircuitPython driver for PyCubed-Mini
 """
 
 import sdcardio
@@ -17,10 +15,12 @@ import neopixel
 import pwmio
 import bmx160
 import drv8830
+from adafruit_pcf8523 import PCF8523
 from bitflags import bitFlag, multiBitFlag
 from micropython import const
 import adafruit_tsl2561
 import time
+import tasko
 from ulab.numpy import array
 
 class device:
@@ -61,10 +61,10 @@ _LOGFAIL = const(5)
 
 class _Satellite:
     # Define NVM flags
-    f_deploy = bitFlag(register=_FLAG, bit=1)
-    f_mdeploy = bitFlag(register=_FLAG, bit=2)
-    f_burn1 = bitFlag(register=_FLAG, bit=3)
-    f_burn2 = bitFlag(register=_FLAG, bit=4)
+    f_contact = bitFlag(register=_FLAG, bit=1)
+    f_burn = bitFlag(register=_FLAG, bit=2)
+    f_free1 = bitFlag(register=_FLAG, bit=3)
+    f_free2 = bitFlag(register=_FLAG, bit=4)
 
     # Define NVM counters
     c_boot = multiBitFlag(register=_BOOTCNT, lowest_bit=0, num_bits=8)
@@ -108,8 +108,10 @@ class _Satellite:
         self.i2c3
         self.spi
         self.sdcard
+        self.vfs
         self.neopixel
         self.imu
+        self.rtc
         self.radio
         self.sun_xn
         self.sun_yn
@@ -165,7 +167,7 @@ class _Satellite:
     @device
     def vfs(self):
         try:
-            vfs = storage.VfsFat(self.sd)
+            vfs = storage.VfsFat(self.sdcard)
             storage.mount(vfs, "/sd")
             sys.path.append("/sd")
             return vfs
@@ -187,7 +189,7 @@ class _Satellite:
     def imu(self):
         """ Define IMU parameters and initialize """
         try:
-            return bmx160.BMX160_I2C(self.i2c1, address=0x68)
+            return bmx160.BMX160_I2C(self.i2c1, address=0x69)
         except Exception as e:
             print(f'[ERROR][Initializing IMU] {e}\n\tMaybe try address=0x68?')
 
@@ -301,20 +303,31 @@ class _Satellite:
         except Exception as e:
             print('[ERROR][Initializing Burn Wire IC1]', e)
 
+    @device
+    def rtc(self):
+        """ Initialize Real Time Clock """
+        try:
+            return PCF8523(self.i2c2)
+        except Exception as e:
+            print('[ERROR][Initializing RTC]', e)
+
+    def imuToBodyFrame(self, vec):
+        return array([-vec[0], vec[2], vec[1]])
+
     @property
     def acceleration(self):
         """ return the accelerometer reading from the IMU in m/s^2 """
-        return self.imu.accel if self.imu else None
+        return self.imuToBodyFrame(self.imu.accel) if self.imu else None
 
     @property
     def magnetic(self):
         """ return the magnetometer reading from the IMU in µT """
-        return self.imu.mag if self.imu else None
+        return self.imuToBodyFrame(self.imu.mag) if self.imu else None
 
     @property
     def gyro(self):
         """ return the gyroscope reading from the IMU in deg/s """
-        return self.imu.gyro if self.imu else None
+        return self.imuToBodyFrame(self.imu.gyro) if self.imu else None
 
     @property
     def temperature_imu(self):
@@ -369,28 +382,36 @@ class _Satellite:
              self.sun_yp.lux - self.sun_yn.lux,
              self.sun_zp.lux - self.sun_zn.lux])
 
-    def burn(self, dutycycle=0, duration=1):
+    async def burn(self, dutycycle=0.5, duration=1):
         """
-        Given a burn wire num, a dutycycle, and a burn duration, control
-        the voltage of the corresponding burnwire IC
-        "dutycycle" tells us the proportion of total voltage we will
-        run the IC at (ex. if "dtycycl" = 0.5, we burn at 1.65 volts)
+        Activates the burnwire for a given duration and dutycycle.
+
+        :param dutycycle: The dutycycle of the burnwire, between 0 and 1
+        :type dutycycle: float
+        :param duration: The duration of the burn, in seconds
+        :type duration: float
+
+        :return: True if the burn was successful, False otherwise
+        :rtype: bool
         """
-        burnwire = self.burnwire1
-        self.RGB = (255, 0, 0)
+        try:
+            burnwire = self.burnwire1
+            self.RGB = (255, 0, 0)
 
-        # set the burnwire's dutycycle; begins the burn
-        burnwire.duty_cycle = int(dutycycle * (0xFFFF))
-        time.sleep(duration)  # wait for given duration
+            # set the burnwire's dutycycle; begins the burn
+            burnwire.duty_cycle = int(dutycycle * (0xFFFF))
+            await tasko.sleep(duration)  # wait for given duration
 
-        # set burnwire's dutycycle back to 0; ends the burn
-        burnwire.duty_cycle = 0
-        self.RGB = (0, 0, 0)
+            # set burnwire's dutycycle back to 0; ends the burn
+            burnwire.duty_cycle = 0
+            self.RGB = (0, 0, 0)
 
-        self._deployA = True  # sets deployment variable to true
-        # burnwire.deinit()  # deinitialize burnwire
-
-        return self._deployA
+            self.f_burn = True
+            return True
+            # burnwire.deinit()  # deinitialize burnwire
+        except Exception as e:
+            print('[ERROR][Burning]', e)
+            return False
 
     @property
     def RGB(self):

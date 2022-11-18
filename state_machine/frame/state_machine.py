@@ -1,5 +1,5 @@
 import tasko
-from lib.pycubed import cubesat
+from pycubed import cubesat
 
 from lib.state_machine_utils import validate_config
 
@@ -54,6 +54,8 @@ class StateMachine:
             raise ValueError(
                 f'You cannot transition from {self.state} to {state_name}')
 
+        self.previous_state = self.state
+
         # execute transition functions
         if self.state != state_name:
             for fn in self.config[self.state]['ExitFunctions']:
@@ -77,7 +79,7 @@ class StateMachine:
 
             frequency = 1 / props['Interval']
             priority = props['Priority']
-            task_fn = self.tasks[task_name].main_task
+            task_fn = self.tasks[task_name]._run
 
             self.scheduled_tasks[task_name] = schedule(
                 frequency, task_fn, priority)
