@@ -1,3 +1,7 @@
+"""
+Python System Check Module for PyCubed Mini satellite board
+"""
+
 import tests
 import tests.i2c_scan
 import tests.sd_test
