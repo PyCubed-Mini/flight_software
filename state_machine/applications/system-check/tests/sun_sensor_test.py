@@ -19,7 +19,7 @@ def test_sun_sensor(sensor, sensor_name, sensors):
 
     min_lux = sensor.lux
     if min_lux is None:
-        return (f"{sensor_name} should read lux, but returns None)", False)
+        return (f"{sensor_name} should read lux, but returns None", False)
 
     for i in range(len(sensors)):
         (other, other_name) = sensors[i]
@@ -28,7 +28,7 @@ def test_sun_sensor(sensor, sensor_name, sensors):
 
         lux = other.lux
         if lux is None:
-            return (f"{other_name} should read lux, but returns None)", False)
+            return (f"{other_name} should read lux, but returns None", False)
 
         if lux < min_lux and other != sensor:
             return (f"{sensor_name} should read the lowest lux, but {other_name} read lower ({min_lux} > {lux})", False)
@@ -55,4 +55,5 @@ async def run(result_dict):
             print(f'Sun Sensor {sensor_name} failed: {str}')
 
     print("Done Testing Sun Sensors\n")
+
 
