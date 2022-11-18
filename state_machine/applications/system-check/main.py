@@ -1,6 +1,5 @@
 """
 Python System Check Module for PyCubed Mini satellite board
-* Author(s): Yashika Batra, Aleksei Seletskiy
 """
 
 from lib.pycubed import cubesat
