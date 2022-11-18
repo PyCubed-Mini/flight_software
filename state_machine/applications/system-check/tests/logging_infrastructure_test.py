@@ -1,14 +1,12 @@
-"""
-Python System Check Module for PyCubed Mini satellite board
-Logging Infrastructure Test: Time Based, Buffered and Unbuffered Logging
-"""
-
 from logging import clear_all_storage, get_buffer, log
 from os import listdir
 from lib.pycubed import cubesat
 import time
 
 sd_card_directory = "/sd"
+time_interval = 5 * 10**9
+file_name_interval = 10**9
+
 
 async def run(result_dict):
     """
@@ -51,7 +49,10 @@ async def run(result_dict):
         # write 2 files worth of messages (sleep 5 seconds between writes)
         while filenum < 2:
             # write buffered logs
-            log(msg, folder=folders[i], buffer=True, max_buffer_size=max_buffer_size)
+            log(msg, folder=folders[i], buffer=True,
+                max_buffer_size=max_buffer_size,
+                time_interval=time_interval,
+                file_name_interval=file_name_interval)
 
             # if buffer is empty, increment count
             if sd_buffer[folders[i]] == "":
@@ -64,8 +65,8 @@ async def run(result_dict):
             time.sleep(5)
 
         # check if the buffer was emptied out the correct number of times
-        buffer_working = buffer_working and buffer_written >= len(msg) // max_buffer_size - 1
-
+        buffer_working = (buffer_working and
+                          buffer_written >= len(msg) // max_buffer_size - 1)
 
     # check if folder1 has all the correct logfiles
     if folders[0] in listdir(sd_card_directory):
@@ -112,14 +113,15 @@ async def run(result_dict):
     print(f"/sd/ directory: {listdir(sd_card_directory)}")
     for folder in listdir(sd_card_directory):
         if folder in folders:
-            folder_logs_contents = listdir(f'{sd_card_directory}/{folder}/logs/')
+            folder_logs_contents = listdir(f'{sd_card_directory}/' +
+                                           f'{folder}/logs/')
             print(f"logs in /sd/{folder} directory: {folder_logs_contents}")
 
     if folder1_written and folder2_written:
         result_string = ("Both folders have been written to correctly." +
                          " Please perform any necessary manual checks.")
     else:
-        result_string = ("Some folder was not written to correctly." + 
+        result_string = ("Some folder was not written to correctly." +
                          " Please check above messages to troubleshoot.")
     print(result_string)
     result_dict["LoggingInfrastructure_Test"] = (
