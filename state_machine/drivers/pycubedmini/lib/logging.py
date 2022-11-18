@@ -12,13 +12,13 @@ MAX_BUFFER_SIZE = 1000
 # start time in nanoseconds
 start_time = cubesat.BOOTTIME
 
-# time_interval = 6 * 10**11 # 10 minutes in nano seconds
-# file_name_interval = 60 * 10**9 # 1 minute in nano seconds
-time_interval = 5 * 10**9
-file_name_interval = 10**9
+TIME_INTERVAL = 6 * 10 ** 11  # 10 minutes in nano seconds
+FILE_NAME_INTERVAL = 60 * 10 ** 9  # 1 minute in nano seconds
 
 
-def read_infotxt(folder=DEFAULT_FOLDER):
+def read_infotxt(folder=DEFAULT_FOLDER,
+                 time_interval=TIME_INTERVAL,
+                 file_name_interval=FILE_NAME_INTERVAL):
     """
     retrieve the logfile number from loginfo.txt
     """
@@ -47,7 +47,10 @@ def read_infotxt(folder=DEFAULT_FOLDER):
     return logfile_starttime
 
 
-def write_infotxt(logfile_starttime, folder=DEFAULT_FOLDER):
+def write_infotxt(logfile_starttime,
+                  folder=DEFAULT_FOLDER,
+                  time_interval=TIME_INTERVAL,
+                  file_name_interval=FILE_NAME_INTERVAL):
     """
     write loginfo.txt in a certain format based on logfile_starttime
     """
@@ -65,12 +68,18 @@ def write_infotxt(logfile_starttime, folder=DEFAULT_FOLDER):
     info_file.close()
 
 
-def get_logfile_name_dir(logfile_starttime, folder=DEFAULT_FOLDER):
+def get_logfile_name_dir(logfile_starttime,
+                         folder=DEFAULT_FOLDER,
+                         time_interval=TIME_INTERVAL,
+                         file_name_interval=FILE_NAME_INTERVAL):
     logfile_name = get_logfile_name(logfile_starttime, folder)
     return f"{sd_card_directory}/{folder}/logs/{logfile_name}"
 
 
-def get_logfile_name(logfile_starttime, folder):
+def get_logfile_name(logfile_starttime,
+                     folder,
+                     time_interval=TIME_INTERVAL,
+                     file_name_interval=FILE_NAME_INTERVAL):
     """
     format the logfile_name based on logfile_starttime and return
     """
@@ -80,7 +89,10 @@ def get_logfile_name(logfile_starttime, folder):
             f"_start{logfile_starttime:06}_end{logfile_endtime:06}.txt")
 
 
-def new_log(logfile_starttime, folder=DEFAULT_FOLDER):
+def new_log(logfile_starttime,
+            folder=DEFAULT_FOLDER,
+            time_interval=TIME_INTERVAL,
+            file_name_interval=FILE_NAME_INTERVAL):
     """
     Create a new log file
     Write a header and return the new logfile_starttime
@@ -110,8 +122,11 @@ def new_log(logfile_starttime, folder=DEFAULT_FOLDER):
     return logfile_starttime
 
 
-def buffered_log(msg, folder=DEFAULT_FOLDER,
-                 max_buffer_size=MAX_BUFFER_SIZE):
+def buffered_log(msg,
+                 folder=DEFAULT_FOLDER,
+                 max_buffer_size=MAX_BUFFER_SIZE,
+                 time_interval=TIME_INTERVAL,
+                 file_name_interval=FILE_NAME_INTERVAL):
     """
     Add msg content to the correct buffer
     If the buffer is full, write it to the correct folder
@@ -132,7 +147,10 @@ def buffered_log(msg, folder=DEFAULT_FOLDER,
         sd_buffer[folder] = ""
 
 
-def unbuffered_log(msg, folder=DEFAULT_FOLDER):
+def unbuffered_log(msg,
+                   folder=DEFAULT_FOLDER,
+                   time_interval=TIME_INTERVAL,
+                   file_name_interval=FILE_NAME_INTERVAL):
     """
     Write msg content to the correct folder
     """
@@ -179,8 +197,12 @@ def unbuffered_log(msg, folder=DEFAULT_FOLDER):
             logfile.write(msg)
 
 
-def log(msg, folder=DEFAULT_FOLDER, buffer=False,
-        max_buffer_size=MAX_BUFFER_SIZE):
+def log(msg,
+        folder=DEFAULT_FOLDER,
+        buffer=False,
+        max_buffer_size=MAX_BUFFER_SIZE,
+        time_interval=TIME_INTERVAL,
+        file_name_interval=FILE_NAME_INTERVAL):
     """
     Handle buffered vs. unbuffered logs
     User-side
