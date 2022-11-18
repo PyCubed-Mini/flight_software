@@ -63,12 +63,9 @@ class _Satellite:
     # Define NVM flags
     f_contact = bitFlag(register=_FLAG, bit=1)
     f_burn = bitFlag(register=_FLAG, bit=2)
-    f_free1 = bitFlag(register=_FLAG, bit=3)
-    f_free2 = bitFlag(register=_FLAG, bit=4)
 
     # Define NVM counters
     c_boot = multiByte(num_bytes=2, lowest_register=_BOOTCNT)
-    # c_boot = multiBitFlag(register=_BOOTCNT, lowest_bit=0, num_bits=8)
     c_state_err = multiBitFlag(register=_RSTERRS, lowest_bit=4, num_bits=4)
     c_vbus_rst = multiBitFlag(register=_RSTERRS, lowest_bit=0, num_bits=4)
     c_deploy = multiBitFlag(register=_DCOUNT, lowest_bit=0, num_bits=8)
@@ -111,6 +108,7 @@ class _Satellite:
         """ Big init routine as the whole board is brought up. """
         self.BOOTTIME = int(time.monotonic())  # get monotonic time at initialization
         self.micro = microcontroller
+        self.c_boot += 1  # increment boot count (can only do this after self.micro is set up)
         self._vbatt = analogio.AnalogIn(board.BATTERY)  # Battery voltage
 
         # To force initialization of hardware
@@ -134,7 +132,6 @@ class _Satellite:
         self.drv_y
         self.drv_z
         self.burnwire1
-        self.c_boot += 1  # increment boot count
 
     @device
     def i2c1(self):
@@ -442,8 +439,6 @@ class _Satellite:
         # Define NVM flags
         self.f_contact = 0
         self.f_burn = 0
-        self.f_free1 = 0
-        self.f_free2 = 0
 
         # Define NVM counters
         self.c_boot = 0
