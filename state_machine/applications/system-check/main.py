@@ -1,5 +1,11 @@
+"""
+Python System Check Module for PyCubed Mini satellite board
+"""
+
+from lib.pycubed import cubesat
 import tests
 import tests.i2c_scan
+import tests.nvm_access_test
 import tests.sd_test
 import tests.imu_test
 import tests.sun_sensor_test
@@ -9,11 +15,10 @@ import supervisor
 import tasko
 from print_utils import bold, normal, red, green
 
-# prevent board from reloading in the middle of the test
 supervisor.disable_autoreload()
 
 # initialize hardware_dict and result_dict
-result_dict = {}
+result_dict = dict()
 
 """
 Each test group contains:
@@ -29,6 +34,8 @@ all_tests = [
     ("Coil Driver Test", "coil", tests.coil_test, True),
     ("Burnwire Test", "burn", tests.burnwire_test, False),
     ("I2C_Scan", "i2c", tests.i2c_scan, False),
+    ("NVM Test", "nvm", tests.nvm_access_test, True),
+    # ("Logging Infrastructure Test", "log", tests.logging_infrastructure_test, True),
 ]
 
 def test_options(tests):
@@ -76,3 +83,8 @@ async def main_test():
 
 tasko.add_task(main_test(), 1)
 tasko.run()
+
+nvm_reset = input(f"\n\nWould you like to reset non-volatile memory? Select {bold}(y){normal} for yes," +
+                  f" or {bold}(n){normal} for no:\n~> ")
+if nvm_reset.lower() == 'y':
+    cubesat.reset_nvm()
