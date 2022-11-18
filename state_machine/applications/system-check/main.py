@@ -1,18 +1,14 @@
 """
-Python system check script for PyCubed satellite board
-PyCubed Mini mainboard-v02 for Pocketqube Mission
-* Author(s): Yashika Batra
+Python System Check Module for PyCubed Mini satellite board
+* Author(s): Yashika Batra, Aleksei Seletskiy
 """
-# print acknowledgement that test has started
 
 from lib.pycubed import cubesat
 import tests
 import tests.i2c_scan
 import tests.nvm_access_test
 import tests.sd_test
-# import tests.logging_infrastructure_test
 import tests.imu_test
-# import tests.radio_test
 import tests.sun_sensor_test
 import tests.coil_test
 import tests.burnwire_test
@@ -23,36 +19,7 @@ from print_utils import bold, normal, red, green
 supervisor.disable_autoreload()
 
 # initialize hardware_dict and result_dict
-result_dict = {
-    "LoggingInfrastructure_Test": ("", None),
-    "Basic_SDCard_Test": ("", None),
-    "IMU_AccGravity": ("", None),
-    "IMU_GyroStationary": ("", None),
-    "IMU_GyroRotating": ("", None),
-    "IMU_MagMagnet": ("", None),
-    "IMU_Temp": ("", None),
-    "Radio_ReceiveBeacon": ("", None),
-    "Radio_SendBeacon": ("", None),
-    "Sun-Y_Dark": ("", None),
-    "Sun-Y_Light": ("", None),
-    "Sun-Z_Dark": ("", None),
-    "Sun-Z_Light": ("", None),
-    "Sun-X_Dark": ("", None),
-    "Sun-X_Light": ("", None),
-    "Sun+Y_Dark": ("", None),
-    "Sun+Y_Light": ("", None),
-    "Sun+Z_Dark": ("", None),
-    "Sun+Z_Light": ("", None),
-    "Sun+X_Dark": ("", None),
-    "Sun+X_Light": ("", None),
-    "CoilDriverX": ("", None),
-    "CoilDriverY": ("", None),
-    "CoilDriverZ": ("", None),
-    "Burnwire": ("", None),
-    "NVM_CounterAccess": ("", None),
-    "NVM_CounterValuesInRange": ("", None),
-    "NVM_CounterInterference": ("", None),
-}
+result_dict = dict()
 
 """
 Each test group contains:
