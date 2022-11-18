@@ -1,17 +1,7 @@
-"""
-Python system check script for PyCubed satellite board
-PyCubed Mini mainboard-v02 for Pocketqube Mission
-* Author(s): Yashika Batra
-"""
-# print acknowledgement that test has started
-
 import tests
 import tests.i2c_scan
-import tests.nvm_access_test
 import tests.sd_test
-import tests.logging_infrastructure_test
 import tests.imu_test
-# import tests.radio_test
 import tests.sun_sensor_test
 import tests.coil_test
 import tests.burnwire_test
@@ -19,38 +9,11 @@ import supervisor
 import tasko
 from print_utils import bold, normal, red, green
 
+# prevent board from reloading in the middle of the test
 supervisor.disable_autoreload()
 
 # initialize hardware_dict and result_dict
-result_dict = {
-    "LoggingInfrastructure_Test": ("", None),
-    "Basic_SDCard_Test": ("", None),
-    "IMU_AccGravity": ("", None),
-    "IMU_GyroStationary": ("", None),
-    "IMU_GyroRotating": ("", None),
-    "IMU_MagMagnet": ("", None),
-    "IMU_Temp": ("", None),
-    "Radio_ReceiveBeacon": ("", None),
-    "Radio_SendBeacon": ("", None),
-    "Sun-Y_Dark": ("", None),
-    "Sun-Y_Light": ("", None),
-    "Sun-Z_Dark": ("", None),
-    "Sun-Z_Light": ("", None),
-    "Sun-X_Dark": ("", None),
-    "Sun-X_Light": ("", None),
-    "Sun+Y_Dark": ("", None),
-    "Sun+Y_Light": ("", None),
-    "Sun+Z_Dark": ("", None),
-    "Sun+Z_Light": ("", None),
-    "Sun+X_Dark": ("", None),
-    "Sun+X_Light": ("", None),
-    "CoilDriverX": ("", None),
-    "CoilDriverY": ("", None),
-    "CoilDriverZ": ("", None),
-    "Burnwire": ("", None),
-    "NVM_CounterAccess": ("", None),
-    "NVM_CounterValuesInRange": ("", None),
-}
+result_dict = {}
 
 """
 Each test group contains:
@@ -66,8 +29,6 @@ all_tests = [
     ("Coil Driver Test", "coil", tests.coil_test, True),
     ("Burnwire Test", "burn", tests.burnwire_test, False),
     ("I2C_Scan", "i2c", tests.i2c_scan, False),
-    ("NVM Test", "nvm", tests.nvm_access_test, True),
-    ("Logging Infrastructure Test", "log", tests.logging_infrastructure_test, True)
 ]
 
 def test_options(tests):
