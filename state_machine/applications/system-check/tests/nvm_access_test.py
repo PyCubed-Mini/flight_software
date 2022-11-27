@@ -4,6 +4,7 @@ Nonvolatile Memory Access and Interference Test
 """
 
 from lib.pycubed import cubesat
+from print_utils import bold, normal
 
 # initialize dictionary for nvm counters, list for values and key/value tuples
 nvm_counters = {"c_boot": cubesat.c_boot,
@@ -132,6 +133,11 @@ async def run(result_dict):
     result_dict["NVM_CounterFlagValuesInRange"] = (counter_flag_inrange_string, counter_flag_inrange)
     counter_overflow, counter_overflow_string = check_nvm_counter_overflow()
     result_dict["NVM_CounterInterference"] = (counter_overflow_string, counter_overflow)
+
+    nvm_reset = input(f"\n\nWould you like to reset non-volatile memory? Select {bold}(y){normal} for yes," +
+                      f" or {bold}(n){normal} for no:\n~> ")
+    if nvm_reset.lower() == 'y':
+        cubesat.reset_nvm()
 
     print("NVM Test Complete.\n")
 
