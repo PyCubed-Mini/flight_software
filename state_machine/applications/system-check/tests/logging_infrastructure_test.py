@@ -4,7 +4,7 @@ Logging Infrastructure Test
 """
 
 from logging import clear_all_storage, get_buffer, log
-from os import listdir
+from os import listdir, remove
 from lib.pycubed import cubesat
 import time
 
@@ -31,8 +31,8 @@ async def run(result_dict):
     clear_all_storage()
     print(f"After clearing storage, /sd/: {listdir(sd_card_directory)}")
 
-    # unbuffered write
-    print("Testing buffered vs. unbuffered writes...")
+    # buffered write; testing this tests unbuffered writes by default
+    print("Testing buffered and unbuffered writes...")
     # for each folder in the folders array
     sd_buffer = get_buffer()
     buffer_working = True
@@ -131,8 +131,39 @@ async def run(result_dict):
     print(result_string)
     result_dict["LoggingInfrastructure_Test"] = (
         result_string, folder1_written and folder2_written)
-    print("Logging Infrastructure Test complete.\n")
+
+    # make sure python files are not cleared with storage
+    print("Create a python file, make sure it is not cleared with storage.\n")
+    pythonfilepath = "helloworld.py"
+    # try to create a file with the test filepath
+    if pythonfilepath not in listdir(sd_card_directory):
+        python_file = open(f'{sd_card_directory}/{pythonfilepath}', "x")
+        # write to file
+        test_string = 'print("Hello World!\n")'
+        try:
+            python_file.write(test_string)
+        except OSError as e:
+            print(f"Unable to write to python file. {e}")
+        python_file.close()
+
+        if pythonfilepath not in listdir(sd_card_directory):
+            print("File creation failed.")
+
+        python_file = open(f'{sd_card_directory}/{pythonfilepath}', "r")
+        if python_file.read() != test_string:
+            print("File write failed.")
+        python_file.close()
 
     print(f"Ending, /sd/: {listdir(sd_card_directory)}")
     clear_all_storage()
+    if pythonfilepath not in listdir(sd_card_directory):
+        result_dict["LoggingInfrastructure_DeletingCodeFiles"] = (
+                    "clear_all_storage() deleted python file.", False)
+        print("clear_all_storage() deleted python file.")
+    else:
+        result_dict["LoggingInfrastructure_DeletingCodeFiles"] = (
+                    "clear_all_storage() did not delete python file.", True)
+        print("clear_all_storage() did not delete python file.")
     print(f"After Clearing Storage, /sd/: {listdir(sd_card_directory)}")
+
+    print("Logging Infrastructure Test complete.\n")
