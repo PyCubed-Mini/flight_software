@@ -20,7 +20,7 @@ def read_infotxt(folder=DEFAULT_FOLDER,
                  time_interval=TIME_INTERVAL,
                  file_name_interval=FILE_NAME_INTERVAL):
     """
-    retrieve the logfile number from loginfo.txt
+    retrieve logfile_starttime from loginfo.txt
     """
 
     # placeholder value
@@ -32,7 +32,7 @@ def read_infotxt(folder=DEFAULT_FOLDER,
         return logfile_starttime
 
     # if loginfo.txt does exist, read the existing loginfo.txt
-    if INFO_FILENAME in listdir(f"{sd_card_directory}/{folder}"):
+    else:
         # read the contents and retrieve logfile_starttime
         info_filename_dir = f"{sd_card_directory}/{folder}/{INFO_FILENAME}"
         info_file = open(info_filename_dir, "r")
@@ -254,7 +254,7 @@ def storage_stats():
 
 def clear_directory(path):
     """
-    Clear all storage on some given directory
+    Clear all storage in some given directory
     """
     # for all files and folders at the given path
     for file_or_folder in listdir(path):
