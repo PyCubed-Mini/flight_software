@@ -5,29 +5,28 @@ from lib.pycubed import cubesat
 sd_card_directory = "/sd/"
 DEFAULT_FOLDER = "debug"
 INFO_FILENAME = "loginfo.txt"
-MAX_FILE_SIZE = 1E8
 
 sd_buffer = dict()
 MAX_BUFFER_SIZE = 1000
 
 # start time in nanoseconds
-global start_time
-start_time = time.monotonic_ns()
-# time_interval = 6 * 10**11 # 10 minutes in nano seconds
-# file_name_interval = 60 * 10**9 # 1 minute in nano seconds
-time_interval = 5 * 10**9
-file_name_interval = 10**9
+start_time = cubesat.BOOTTIME
+
+TIME_INTERVAL = 6 * 10 ** 11  # 10 minutes in nano seconds
+FILE_NAME_INTERVAL = 60 * 10 ** 9  # 1 minute in nano seconds
 
 
-def read_infotxt(folder=DEFAULT_FOLDER):
+def read_infotxt(folder=DEFAULT_FOLDER,
+                 time_interval=TIME_INTERVAL,
+                 file_name_interval=FILE_NAME_INTERVAL):
     """
     retrieve the logfile number from loginfo.txt
     """
 
     # placeholder value
-    logfile_starttime = 0
+    logfile_starttime = start_time // file_name_interval
 
-    # if loginfo.txt doesn't exist, write it with logfile_starttime 0 and read
+    # if loginfo.txt doesn't exist, write it with initial starttime and read
     if INFO_FILENAME not in listdir(f"{sd_card_directory}/{folder}"):
         write_infotxt(logfile_starttime, folder)
         return logfile_starttime
@@ -48,7 +47,10 @@ def read_infotxt(folder=DEFAULT_FOLDER):
     return logfile_starttime
 
 
-def write_infotxt(logfile_starttime, folder=DEFAULT_FOLDER):
+def write_infotxt(logfile_starttime,
+                  folder=DEFAULT_FOLDER,
+                  time_interval=TIME_INTERVAL,
+                  file_name_interval=FILE_NAME_INTERVAL):
     """
     write loginfo.txt in a certain format based on logfile_starttime
     """
@@ -66,30 +68,39 @@ def write_infotxt(logfile_starttime, folder=DEFAULT_FOLDER):
     info_file.close()
 
 
-def get_logfile_name_dir(logfile_starttime, folder=DEFAULT_FOLDER):
+def get_logfile_name_dir(logfile_starttime,
+                         folder=DEFAULT_FOLDER,
+                         time_interval=TIME_INTERVAL,
+                         file_name_interval=FILE_NAME_INTERVAL):
     logfile_name = get_logfile_name(logfile_starttime, folder)
     return f"{sd_card_directory}/{folder}/logs/{logfile_name}"
 
 
-def get_logfile_name(logfile_starttime, folder):
+def get_logfile_name(logfile_starttime,
+                     folder,
+                     time_interval=TIME_INTERVAL,
+                     file_name_interval=FILE_NAME_INTERVAL):
     """
     format the logfile_name based on logfile_starttime and return
     """
-    logfile_endtime = (logfile_starttime + time_interval) // (10**9)
-    bootcount = cubesat.get_boot_count()
-    return (f"{folder}_log_reboot{bootcount:03}" +
+    logfile_endtime = logfile_starttime + (time_interval // file_name_interval)
+    bootcount = cubesat.c_boot
+    return (f"{folder}_log_reboot{bootcount:06}" +
             f"_start{logfile_starttime:06}_end{logfile_endtime:06}.txt")
 
 
-def new_log(logfile_starttime, folder=DEFAULT_FOLDER):
+def new_log(logfile_starttime,
+            folder=DEFAULT_FOLDER,
+            time_interval=TIME_INTERVAL,
+            file_name_interval=FILE_NAME_INTERVAL):
     """
     Create a new log file
     Write a header and return the new logfile_starttime
     """
 
-    # After you fill up 1000 files (~ 1 GB), overwrite old files
-    logfile_starttime = start_time // (10**9)
-    logfile_name = get_logfile_name(logfile_starttime)
+    # Create new logs whenever we have finished a time interval
+    logfile_starttime = start_time // file_name_interval
+    logfile_name = get_logfile_name(logfile_starttime, folder=folder)
     logfile_name_dir = get_logfile_name_dir(logfile_starttime, folder)
 
     # if logfile_name doesn't exist, create it
@@ -111,8 +122,11 @@ def new_log(logfile_starttime, folder=DEFAULT_FOLDER):
     return logfile_starttime
 
 
-def buffered_log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER,
-                 max_buffer_size=MAX_BUFFER_SIZE):
+def buffered_log(msg,
+                 folder=DEFAULT_FOLDER,
+                 max_buffer_size=MAX_BUFFER_SIZE,
+                 time_interval=TIME_INTERVAL,
+                 file_name_interval=FILE_NAME_INTERVAL):
     """
     Add msg content to the correct buffer
     If the buffer is full, write it to the correct folder
@@ -128,12 +142,15 @@ def buffered_log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER,
         # get msg from buffer
         msg = sd_buffer[folder]
         # write to file
-        unbuffered_log(msg=msg, max_file_size=max_file_size, folder=folder)
+        unbuffered_log(msg=msg, folder=folder)
         # update buffer
         sd_buffer[folder] = ""
 
 
-def unbuffered_log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER):
+def unbuffered_log(msg,
+                   folder=DEFAULT_FOLDER,
+                   time_interval=TIME_INTERVAL,
+                   file_name_interval=FILE_NAME_INTERVAL):
     """
     Write msg content to the correct folder
     """
@@ -150,7 +167,7 @@ def unbuffered_log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER):
             # create given hardware logs folder
             mkdir(f"{sd_card_directory}/{folder}/")
             # create loginfo.txt
-            logfile_starttime = 0
+            logfile_starttime = start_time // file_name_interval
             write_infotxt(logfile_starttime, folder)
 
         # get the current logfile_starttime for the given folder
@@ -170,9 +187,8 @@ def unbuffered_log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER):
 
         # if it's been more than some given time interval
         if write_new_file:
-            print(f"it's been {time_interval} ns, writing a new file")
             # create a new logfile
-            logfile_starttime = new_log(logfile_starttime)
+            logfile_starttime = new_log(logfile_starttime, folder=folder)
             # get the logfile_name_dir again based on new logfile_starttime
             logfile_name_dir = get_logfile_name_dir(logfile_starttime, folder)
 
@@ -181,8 +197,12 @@ def unbuffered_log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER):
             logfile.write(msg)
 
 
-def log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER, buffer=False,
-        max_buffer_size=MAX_BUFFER_SIZE):
+def log(msg,
+        folder=DEFAULT_FOLDER,
+        buffer=False,
+        max_buffer_size=MAX_BUFFER_SIZE,
+        time_interval=TIME_INTERVAL,
+        file_name_interval=FILE_NAME_INTERVAL):
     """
     Handle buffered vs. unbuffered logs
     User-side
@@ -190,7 +210,7 @@ def log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER, buffer=False,
 
     # if we are writing to debug, unbuffer it by default
     if folder == DEFAULT_FOLDER:
-        unbuffered_log(msg=msg, max_file_size=max_file_size, folder=folder)
+        unbuffered_log(msg=msg, folder=folder)
 
     # if we are not writing to debug, check if we're using the buffer or not
     else:
@@ -201,7 +221,7 @@ def log(msg, max_file_size=MAX_FILE_SIZE, folder=DEFAULT_FOLDER, buffer=False,
                          max_buffer_size=max_buffer_size)
         # if we are not doing a buffered log
         else:
-            unbuffered_log(msg=msg, max_file_size=max_file_size, folder=folder)
+            unbuffered_log(msg=msg, folder=folder)
 
 
 def get_buffer():
@@ -232,42 +252,30 @@ def storage_stats():
     return (fs_usage, sd_usage)
 
 
-def clear_storage(folder):
+def clear_directory(path):
     """
-    Clear the logs directory and info.txt file on the sd card's given folder
+    Clear all storage on some given directory
     """
-    # get the filepath for the info file for the given folder
-    info_filename_dir = f"{sd_card_directory}/{folder}/{INFO_FILENAME}"
+    # for all files and folders at the given path
+    for file_or_folder in listdir(path):
+        # get the stat info for the given file or folder
+        file_or_folder_stat = stat(f"{path}{file_or_folder}")
+        # if the folder is a directory, clear the folder
+        if file_or_folder_stat[0] == 16384:
+            folder = file_or_folder
+            # if it's not an internal / hidden folder
+            if "." not in folder:
+                clear_directory(f"{path}{folder}/")
+                rmdir(f"{path}{folder}")
 
-    # if a logs directory exists in the given folder
-    if "logs" in listdir(f"{sd_card_directory}/{folder}"):
-        # remove all logfiles in the logs directory
-        for logfile in listdir(f"{sd_card_directory}/{folder}/logs/"):
-            remove(f"{sd_card_directory}/{folder}/logs/{logfile}")
-        # remove the logs directory
-        rmdir(f"{sd_card_directory}/{folder}/logs")
-
-    # remove the info file from the given folder
-    if INFO_FILENAME in listdir(f"{sd_card_directory}/{folder}"):
-        remove(info_filename_dir)
-
-    rmdir(f"{sd_card_directory}/{folder}")
+        # else, the folder is a file, remove the file
+        else:
+            sdfile = file_or_folder
+            remove(f"{path}/{sdfile}")
 
 
 def clear_all_storage():
     """
     Clear the all files and directories on the sd card
     """
-
-    # for all files and folders in the sd directory
-    for file_or_folder in listdir(sd_card_directory):
-        # get the stat info for the given file or folder
-        file_or_folder_stat = stat(f"{sd_card_directory}/{file_or_folder}")
-        # if the folder is a directory, clear the folder
-        if file_or_folder_stat[0] == 16384:
-            folder = file_or_folder
-            clear_storage(folder)
-        # else, the folder is a file, remove the file
-        else:
-            sdfile = file_or_folder
-            remove(f"/sd/{sdfile}")
+    clear_directory(sd_card_directory)
