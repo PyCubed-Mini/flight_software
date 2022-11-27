@@ -436,11 +436,11 @@ class _Satellite:
 
     def reset_nvm(self):
         """ reset all flags and counters in non volatile memory """
-        # Define NVM flags
+        # Reset NVM flags
         self.f_contact = 0
         self.f_burn = 0
 
-        # Define NVM counters
+        # Reset NVM counters
         self.c_boot = 0
         self.c_state_err = 0
         self.c_vbus_rst = 0
