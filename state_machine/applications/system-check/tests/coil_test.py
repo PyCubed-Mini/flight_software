@@ -1,6 +1,6 @@
 """
-Python System Check Module for PyCubed Mini satellite board
-Torque Driver Test
+System check module for PyCubed Mini satellite
+Coil Driver Test
 """
 
 import time
