@@ -1,3 +1,8 @@
+"""
+System check module for PyCubed Mini satellite
+Logging Infrastructure Test
+"""
+
 from logging import clear_all_storage, get_buffer, log
 from os import listdir
 from lib.pycubed import cubesat

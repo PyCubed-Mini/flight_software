@@ -1,5 +1,11 @@
+"""
+System check module for PyCubed Mini satellite
+Sun Sensor Test
+"""
+
 from lib.pycubed import cubesat
 from print_utils import bold, normal
+
 
 def test_sun_sensor(sensor, sensor_name, sensors):
     """
@@ -10,14 +16,22 @@ def test_sun_sensor(sensor, sensor_name, sensors):
     if sensor is None:
         return ("not detected", False)
     input(f'Place the {bold}{sensor_name}{normal} board face down on the table, then press enter: ')
+
     min_lux = sensor.lux
+    if min_lux is None:
+        return (f"{sensor_name} should read lux, but returns None", False)
+
     for i in range(len(sensors)):
         (other, other_name) = sensors[i]
         if other is None:
             continue
+
         lux = other.lux
+        if lux is None:
+            return (f"{other_name} should read lux, but returns None", False)
+
         if lux < min_lux and other != sensor:
-            return (f"{sensor_name} should read the lowest lux, but {other_name} read lower ({min_lux} > {lux})", False)
+            return (f"{sensor_name} should read the lowest lux ({min_lux}), but {other_name} read lower ({lux})", False)
     return ("success", True)
 
 

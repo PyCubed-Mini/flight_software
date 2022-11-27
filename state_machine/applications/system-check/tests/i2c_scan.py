@@ -1,3 +1,8 @@
+"""
+System check module for PyCubed Mini satellite
+I2C Address Scan for Connected Devices
+"""
+
 from lib.pycubed import cubesat
 
 

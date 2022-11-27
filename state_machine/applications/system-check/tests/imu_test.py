@@ -1,8 +1,6 @@
 """
-Python system check script for PyCubed satellite board
-PyCubed Mini mainboard-v02 for Pocketqube Mission
+System check module for PyCubed Mini satellite
 IMU Sensor Test
-* Author(s): Yashika Batra
 """
 
 import time
