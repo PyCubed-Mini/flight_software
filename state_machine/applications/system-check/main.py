@@ -28,14 +28,14 @@ Each test group contains:
     - if it is to be run in default mode
 """
 all_tests = [
-    ("SD Test", "sd", tests.sd_test, True),
+    ("Delete Logs and Test SD Card", "sd", tests.sd_test, True),
     ("IMU Test", "imu", tests.imu_test, True),
     ("Sun Sensor Test", "sun", tests.sun_sensor_test, True),
     ("Coil Driver Test", "coil", tests.coil_test, True),
     ("Burnwire Test", "burn", tests.burnwire_test, False),
     ("I2C_Scan", "i2c", tests.i2c_scan, False),
     ("Reset and Test NVM", "nvm", tests.nvm_access_test, True),
-    ("Logging Infrastructure Test", "log",
+    ("Delete Logs and Test Logging Infrastructure", "log",
      tests.logging_infrastructure_test, True),
 ]
 
