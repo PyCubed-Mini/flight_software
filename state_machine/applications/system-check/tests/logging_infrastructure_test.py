@@ -4,7 +4,7 @@ Logging Infrastructure Test
 """
 
 from logging import clear_all_storage, get_buffer, log
-from os import listdir, remove
+from os import listdir
 from lib.pycubed import cubesat
 import time
 
@@ -158,11 +158,11 @@ async def run(result_dict):
     clear_all_storage()
     if pythonfilepath not in listdir(sd_card_directory):
         result_dict["LoggingInfrastructure_DeletingCodeFiles"] = (
-                    "clear_all_storage() deleted python file.", False)
+            "clear_all_storage() deleted python file.", False)
         print("clear_all_storage() deleted python file.")
     else:
         result_dict["LoggingInfrastructure_DeletingCodeFiles"] = (
-                    "clear_all_storage() did not delete python file.", True)
+            "clear_all_storage() did not delete python file.", True)
         print("clear_all_storage() did not delete python file.")
     print(f"After Clearing Storage, /sd/: {listdir(sd_card_directory)}")
 
