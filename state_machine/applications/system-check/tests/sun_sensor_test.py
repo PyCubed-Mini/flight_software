@@ -1,5 +1,5 @@
 """
-Python System Check Module for PyCubed Mini satellite board
+System check module for PyCubed Mini satellite
 Sun Sensor Test
 """
 
