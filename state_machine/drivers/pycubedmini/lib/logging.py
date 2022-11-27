@@ -271,7 +271,8 @@ def clear_directory(path):
         # else, the folder is a file, remove the file
         else:
             sdfile = file_or_folder
-            remove(f"{path}/{sdfile}")
+            if ".py" not in sdfile and ".mpy" not in sdfile:
+                remove(f"{path}/{sdfile}")
 
 
 def clear_all_storage():
