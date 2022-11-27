@@ -4,6 +4,8 @@ System check module for PyCubed Mini satellite
 
 import tests
 import tests.i2c_scan
+import tests.nvm_access_test
+import tests.logging_infrastructure_test
 import tests.sd_test
 import tests.imu_test
 import tests.sun_sensor_test
@@ -13,11 +15,10 @@ import supervisor
 import tasko
 from print_utils import bold, normal, red, green
 
-# prevent board from reloading in the middle of the test
 supervisor.disable_autoreload()
 
 # initialize hardware_dict and result_dict
-result_dict = {}
+result_dict = dict()
 
 """
 Each test group contains:
@@ -27,18 +28,24 @@ Each test group contains:
     - if it is to be run in default mode
 """
 all_tests = [
-    ("SD Test", "sd", tests.sd_test, True),
+    ("Delete Logs and Test SD Card", "sd", tests.sd_test, True),
     ("IMU Test", "imu", tests.imu_test, True),
     ("Sun Sensor Test", "sun", tests.sun_sensor_test, True),
     ("Coil Driver Test", "coil", tests.coil_test, True),
     ("Burnwire Test", "burn", tests.burnwire_test, False),
     ("I2C_Scan", "i2c", tests.i2c_scan, False),
+    ("Reset and Test NVM", "nvm", tests.nvm_access_test, True),
+    ("Delete Logs and Test Logging Infrastructure", "log",
+     tests.logging_infrastructure_test, True),
 ]
 
+
 def test_options(tests):
-    print(f'\n\nSelect: {bold}(a){normal} for all, {bold}(d){normal} for default, or select a specific test:')
+    print(f'\n\nSelect: {bold}(a){normal} for all, {bold}(d){normal} ' +
+          'for default, or select a specific test:')
     for (name, nick, _, _) in tests:
         print(f"  {bold}({nick}){normal}: {name}")
+
 
 def results_to_str(results):
     failed = []
