@@ -1,8 +1,3 @@
-"""
-System check module for PyCubed Mini satellite
-Burnwire Deployment Test
-"""
-
 from lib.pycubed import cubesat
 
 

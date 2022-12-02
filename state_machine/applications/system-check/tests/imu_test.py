@@ -1,8 +1,3 @@
-"""
-System check module for PyCubed Mini satellite
-IMU Sensor Test
-"""
-
 import time
 from ulab import numpy
 from lib.pycubed import cubesat

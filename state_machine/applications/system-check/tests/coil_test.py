@@ -1,8 +1,3 @@
-"""
-System check module for PyCubed Mini satellite
-Coil Driver Test
-"""
-
 import time
 from lib.pycubed import cubesat
 from ulab import numpy

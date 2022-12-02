@@ -1,8 +1,3 @@
-"""
-System check module for PyCubed Mini satellite
-SD Card Logging Test
-"""
-
 import os
 from lib.pycubed import cubesat
 from logging import clear_all_storage

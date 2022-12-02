@@ -1,8 +1,3 @@
-"""
-System check module for PyCubed Mini satellite
-Sun Sensor Test
-"""
-
 from lib.pycubed import cubesat
 from print_utils import bold, normal
 

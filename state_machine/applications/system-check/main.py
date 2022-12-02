@@ -1,7 +1,3 @@
-"""
-System check module for PyCubed Mini satellite
-"""
-
 import tests
 import tests.i2c_scan
 import tests.nvm_access_test

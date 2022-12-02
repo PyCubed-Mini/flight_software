@@ -1,8 +1,3 @@
-"""
-Python System Check Module for PyCubed Mini satellite board
-Nonvolatile Memory Access and Interference Test
-"""
-
 from lib.pycubed import cubesat
 from print_utils import bold, normal
 
