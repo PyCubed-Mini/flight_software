@@ -7,6 +7,7 @@ from lib.template_task import Task
 import radio_utils.transmission_queue as tq
 import radio_utils.commands as cdh
 import radio_utils.headers as headers
+from radio_utils.hash import bsdChecksum
 from pycubed import cubesat
 
 ANTENNA_ATTACHED = False
@@ -63,6 +64,7 @@ class task(Task):
             self.debug("No packets to send")
             cubesat.radio.listen()
             response = await cubesat.radio.receive(keep_listening=True, with_ack=ANTENNA_ATTACHED, timeout=10)
+            response = self.verify_integrity(response)
             if response is not None:
                 cubesat.f_contact = True
                 header = response[0]
@@ -84,6 +86,15 @@ class task(Task):
                 self.debug('No packets received')
 
         cubesat.radio.sleep()
+
+    def verify_integrity(self, packet):
+        """Verifies the checksum of a packet, returns None on failure.
+        If the packet is valid, returns the packet without the checksum."""
+        if bsdChecksum(packet[:-2]) == packet[:-2]:
+            return packet[:-2]
+        else:
+            self.debug('Checksum failed')
+            return None
 
     def handle_memory_buffered_message(self, header, response):
         """Handler function for the memory_buffered_message message type"""
