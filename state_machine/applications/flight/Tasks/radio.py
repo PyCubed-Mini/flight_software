@@ -90,7 +90,7 @@ class task(Task):
     def verify_integrity(self, packet):
         """Verifies the checksum of a packet, returns None on failure.
         If the packet is valid, returns the packet without the checksum."""
-        if bsdChecksum(packet[:-2]) == packet[:-2]:
+        if bsdChecksum(packet[1:-2]) == packet[-2:]:
             return packet[:-2]
         else:
             self.debug('Checksum failed')

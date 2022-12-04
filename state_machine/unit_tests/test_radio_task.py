@@ -10,6 +10,7 @@ import Tasks.radio as radio
 from radio_driver import _Packet as Packet
 import radio_utils.headers as headers
 import radio_utils.commands as cdh
+from radio_utils.hash import bsdChecksum
 from pycubed import cubesat
 from state_machine import state_machine
 
@@ -17,7 +18,8 @@ radio.ANTENNA_ATTACHED = True
 state_machine.state = 'Debug'
 
 def command_data(command_code, args):
-    return bytes([headers.COMMAND]) + b'p\xba\xb8C' + command_code + args
+    payload = b'p\xba\xb8C' + command_code + args
+    return bytearray(bytes([headers.COMMAND]) + payload + bsdChecksum(payload))
 
 class AssertCalled:
 
@@ -51,4 +53,12 @@ class RXCommandTest(IsolatedAsyncioTestCase):
         query = AssertCalled(cdh.query)
         cdh.commands[cdh.QUERY] = query.command
         await rt.main_task()
-        self.assertEqual(noop.called, True, "Query command was not called")
+        self.assertEqual(query.called, True, "Query command was not called")
+
+        query.called = False
+        bad_query_payload = command_data(cdh.QUERY, b'5+5')
+        bad_query_payload[7] = 0x00  # Corrupt packet
+        bad_query_packet = Packet(bad_query_payload)
+        cubesat.radio._push_rx_queue(bad_query_packet)
+        await rt.main_task()
+        self.assertEqual(query.called, False, "Query command was called, despite a corrupted payload")
