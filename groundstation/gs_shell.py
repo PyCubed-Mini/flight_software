@@ -6,12 +6,11 @@ import busio
 import digitalio
 import config
 from utils import read_loop
-import radio_utils.commands as commands
-from radio_utils.disk_buffered_message import DiskBufferedMessage
-from radio_utils import headers
 from lib import pycubed_rfm9x_fsk
 from lib import radio_defaults
+from radio_utils.commands import command_map
 from shell_utils import bold, normal, red, green, yellow, blue, get_input_discrete, manually_configure_radio, print_radio_configuration
+from gs_actions import upload_file, send_command
 
 
 print(f"\n{bold}{yellow}PyCubed-Mini Groundstation Shell{normal}\n")
@@ -98,36 +97,12 @@ while True:
         read_loop(radio)
     elif choice in prompt_options["Upload file"]:
         path = input('path=')
-        msg = ChunkMessage(0, path)
-        while True:
-            packet, with_ack = msg.packet()
-
-            debug_packet = str(packet)[:20] + "...." if len(packet) > 23 else packet
-            print(f"Sending packet: {debug_packet}, with_ack: {with_ack}")
-
-            if with_ack:
-                if radio.send_with_ack(packet, debug=True):
-                    print('ack')
-                    msg.ack()
-                else:
-                    print('no ack')
-                    msg.no_ack()
-            else:
-                radio.send(packet, keep_listening=True)
-
-            if msg.done():
-                break
+        upload_file(radio, path)
     elif choice in prompt_options["Send command"]:
-        print(commands.keys())
-        comand_bytes, will_respond = commands[input('command=')]
+        command_name = get_input_discrete("Select a command", command_map.keys())
+        command_bytes, will_respond = command_map[command_name]
         args = input('arguments=')
-        msg = bytes([headers.COMMAND]) + config.secret_code + comand_bytes + bytes(args, 'utf-8')
-        while not radio.send_with_ack(msg, debug=True):
-            print('Failed to send command')
-            pass
-        print('Successfully sent command')
-        if will_respond:
-            read_loop(radio)
+        send_command(radio, command_bytes, args, will_respond)
     elif choice in prompt_options["Help"]:
         print_help()
     elif choice in prompt_options["Quit"]:
