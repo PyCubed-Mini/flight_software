@@ -9,8 +9,9 @@ from utils import read_loop
 import radio_utils.commands as commands
 from radio_utils.disk_buffered_message import DiskBufferedMessage
 from radio_utils import headers
-from lib.pycubed_rfm9x_fsk import RFM9x
-from shell_utils import bold, normal, red, green, yellow, blue, get_input_discrete, get_input_range
+from lib import pycubed_rfm9x_fsk
+from lib import radio_defaults
+from shell_utils import bold, normal, red, green, yellow, blue, get_input_discrete, manually_configure_radio, print_radio_configuration
 
 
 print(f"\n{bold}{yellow}PyCubed-Mini Groundstation Shell{normal}\n")
@@ -50,27 +51,37 @@ else:  # board_str == "r"
 # Initialize SPI bus.
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 
-# Initialze RFM radio
-RADIO_FREQ_MHZ = 433.0
-rfm9x = RFM9x(spi, CS, RESET, RADIO_FREQ_MHZ, checksum=True)
+# Initialze radio
+radio = pycubed_rfm9x_fsk.RFM9x(
+    spi,
+    CS,
+    RESET,
+    radio_defaults.FREQUENCY,
+    checksum=radio_defaults.CHECKSUM)
 
-# configure for FSK
-rfm9x.tx_power = 23
-rfm9x.bitrate = 2400
-rfm9x.frequency_deviation = 10000
-rfm9x.rx_bandwidth = 25.0
-rfm9x.preamble_length = 16
-rfm9x.ack_delay = 1.0
-rfm9x.ack_wait = 5
+# configure to match satellite
+radio.tx_power = radio_defaults.TX_POWER
+radio.bitrate = radio_defaults.BITRATE
+radio.frequency_deviation = radio_defaults.FREQUENCY_DEVIATION
+radio.rx_bandwidth = radio_defaults.RX_BANDWIDTH
+radio.preamble_length = radio_defaults.PREAMBLE_LENGTH
+radio.ack_delay = radio_defaults.ACK_DELAY
+radio.ack_wait = radio_defaults.ACK_WAIT
+radio.node = radio_defaults.GROUNDSTATION_ID
+radio.destination = radio_defaults.SATELLITE_ID
 
-# set node/destination
-rfm9x.node = 0xBA
-rfm9x.destination = 0xAB
+print_radio_configuration(radio)
+
+if "y" == get_input_discrete(
+        f"Change radio parameters? {bold}(y/N){normal}", ["", "y", "n"]):
+    manually_configure_radio(radio)
+    print_radio_configuration(radio)
+
 
 while True:
     prompt = input('~>')
     if prompt == 'rl' or prompt == 'read_loop':  # Recieve on a loop
-        read_loop(rfm9x)
+        read_loop(radio)
     elif prompt == 'uf' or prompt == 'upload_file':
         path = input('path=')
         msg = ChunkMessage(0, path)
@@ -81,14 +92,14 @@ while True:
             print(f"Sending packet: {debug_packet}, with_ack: {with_ack}")
 
             if with_ack:
-                if rfm9x.send_with_ack(packet, debug=True):
+                if radio.send_with_ack(packet, debug=True):
                     print('ack')
                     msg.ack()
                 else:
                     print('no ack')
                     msg.no_ack()
             else:
-                rfm9x.send(packet, keep_listening=True)
+                radio.send(packet, keep_listening=True)
 
             if msg.done():
                 break
@@ -97,12 +108,12 @@ while True:
         comand_bytes, will_respond = commands[input('command=')]
         args = input('arguments=')
         msg = bytes([headers.COMMAND]) + config.secret_code + comand_bytes + bytes(args, 'utf-8')
-        while not rfm9x.send_with_ack(msg, debug=True):
+        while not radio.send_with_ack(msg, debug=True):
             print('Failed to send command')
             pass
         print('Successfully sent command')
         if will_respond:
-            read_loop(rfm9x)
+            read_loop(radio)
     elif prompt == 'h' or prompt == 'help':
         print('rl: read_loop')
         print('uf: upload_file')

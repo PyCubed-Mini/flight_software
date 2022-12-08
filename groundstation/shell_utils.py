@@ -82,3 +82,39 @@ def set_param_from_input_range(param, prompt_str, choice_range, allow_default=Fa
         return param
     else:
         return float(choice)
+
+def manually_configure_radio(radio):
+    radio.frequency_mhz = set_param_from_input_range(radio.frequency_mhz, f"Frequency (currently {radio.frequency_mhz} MHz)",
+                                                     [240.0, 960.0], allow_default=True)
+    radio.tx_power = set_param_from_input_discrete(radio.tx_power, f"Power (currently {radio.tx_power} dB)",
+                                                   [f"{i}" for i in range(5, 24)], allow_default=True)
+    radio.bitrate = set_param_from_input_range(radio.bitrate, f"Bitrate (currently {radio.bitrate} bps)",
+                                               [500, 300000], allow_default=True)
+    radio.frequency_deviation = set_param_from_input_range(radio.frequency_deviation, f"Frequency deviation (currently {radio.frequency_deviation})",
+                                                           [600, 200000], allow_default=True)
+    radio.rx_bandwidth = set_param_from_input_discrete(radio.rx_bandwidth, f"Receiver filter bandwidth (single-sided, currently {radio.rx_bandwidth})",
+                                                       [f"{radio._bw_bins_kHz[i]}" for i in range(len(radio._bw_bins_kHz))], allow_default=True, type=float)
+    radio.lna_gain = set_param_from_input_discrete(radio.lna_gain, f"LNA Gain - [max = 1, min = 6] (currently {radio.lna_gain})",
+                                                   [f"{i}" for i in range(1, 7)], allow_default=True)
+    radio.preamble_length = set_param_from_input_range(radio.preamble_length, f"Preamble length (currently {radio.preamble_length})",
+                                                       [3, 2**16], allow_default=True)
+    radio.ack_delay = set_param_from_input_range(radio.ack_delay, f"Acknowledge delay (currently {radio.ack_delay} s)",
+                                                 [0.0, 10.0], allow_default=True)
+    radio.ack_wait = set_param_from_input_range(radio.ack_wait, f"Acknowledge RX Timeout (currently {radio.ack_wait} s)",
+                                                [0.0, 100.0], allow_default=True)
+    radio.afc_enable = set_param_from_input_discrete(radio.afc_enable, f"Enable automatic frequency calibration (AFC) (currently {radio.afc_enable})",
+                                                     ["0", "1"], allow_default=True)
+
+def print_radio_configuration(radio):
+    print(f"{yellow}{bold}Radio Configuration:{normal}")
+    print(f"\tNode addr = {radio.node}\tDest addr = {radio.destination}")
+    print(f"\tFrequency = {radio.frequency_mhz} MHz")
+    print(f"\tPower = {radio.tx_power} dBm")
+    print(f"\tBitrate = {radio.bitrate} Hz")
+    print(f"\tFrequency Deviation = {radio.frequency_deviation}")
+    print(f"\tRX filter bandwidth = {radio.rx_bandwidth}")
+    print(f"\tLNA Gain [max = 1, min = 6] = {radio.lna_gain}")
+    print(f"\tPreamble Length = {radio.preamble_length}")
+    print(f"\tAcknowledge delay = {radio.ack_delay} s")
+    print(f"\tAcknowledge wait = {radio.ack_wait} s")
+    print(f"\tAFC enabled = {radio.afc_enable}")
