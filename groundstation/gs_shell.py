@@ -77,12 +77,26 @@ if "y" == get_input_discrete(
     manually_configure_radio(radio)
     print_radio_configuration(radio)
 
+prompt_options = {"Receive loop": ("r", "receive"),
+                  "Upload file": ("u", "upload"),
+                  "Send command": ("c", "command"),
+                  "Help": ("h", "print_help"),
+                  "Quit": ("q", "quit")}
+
+def print_help():
+    print(f"\n{yellow}Groundstation shell help:{normal}")
+    for po in prompt_options:
+        print(f"{bold}{po}{normal}: {prompt_options[po]}")
+
+
+print_help()
 
 while True:
-    prompt = input('~>')
-    if prompt == 'rl' or prompt == 'read_loop':  # Recieve on a loop
+    flattend_prompt_options = list(sum(prompt_options.values(), ()))
+    choice = get_input_discrete("Choose an action", flattend_prompt_options)
+    if choice in prompt_options["Receive loop"]:
         read_loop(radio)
-    elif prompt == 'uf' or prompt == 'upload_file':
+    elif choice in prompt_options["Upload file"]:
         path = input('path=')
         msg = ChunkMessage(0, path)
         while True:
@@ -103,7 +117,7 @@ while True:
 
             if msg.done():
                 break
-    elif prompt == 'c' or prompt == 'command':  # Transmit particular command
+    elif choice in prompt_options["Send command"]:
         print(commands.keys())
         comand_bytes, will_respond = commands[input('command=')]
         args = input('arguments=')
@@ -114,8 +128,7 @@ while True:
         print('Successfully sent command')
         if will_respond:
             read_loop(radio)
-    elif prompt == 'h' or prompt == 'help':
-        print('rl: read_loop')
-        print('uf: upload_file')
-        print('c: command')
-        print('h: help')
+    elif choice in prompt_options["Help"]:
+        print_help()
+    elif choice in prompt_options["Quit"]:
+        break
