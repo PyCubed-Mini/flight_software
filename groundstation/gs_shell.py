@@ -4,8 +4,6 @@ Provides a basic shell-like interface to send and receive data from the satellit
 import board
 import busio
 import digitalio
-import config
-from utils import read_loop
 from lib import pycubed_rfm9x_fsk
 from lib import radio_defaults
 from radio_utils.commands import command_map
