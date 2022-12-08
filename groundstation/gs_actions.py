@@ -12,7 +12,7 @@ def initialize_radio():
 def setup_board():
     pass
 
-def wait_for_packet(radio):
+def wait_for_message(radio):
     pass
 
 def send_command(radio, command_bytes, args, will_respond):
@@ -21,7 +21,7 @@ def send_command(radio, command_bytes, args, will_respond):
         print('Successfully sent command')
         if will_respond:
             print('Waiting for response')
-            wait_for_packet(radio)
+            wait_for_message(radio)
     else:
         print('Failed to send command')
 

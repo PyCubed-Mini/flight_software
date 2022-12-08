@@ -10,7 +10,7 @@ from lib import pycubed_rfm9x_fsk
 from lib import radio_defaults
 from radio_utils.commands import command_map
 from shell_utils import bold, normal, red, green, yellow, blue, get_input_discrete, manually_configure_radio, print_radio_configuration
-from gs_actions import upload_file, send_command
+from gs_actions import upload_file, send_command, wait_for_message
 
 
 print(f"\n{bold}{yellow}PyCubed-Mini Groundstation Shell{normal}\n")
@@ -91,17 +91,22 @@ def print_help():
 print_help()
 
 while True:
-    flattend_prompt_options = list(sum(prompt_options.values(), ()))
+    flattend_prompt_options = [v for pov in prompt_options.values() for v in pov]
     choice = get_input_discrete("Choose an action", flattend_prompt_options)
     if choice in prompt_options["Receive loop"]:
-        read_loop(radio)
+        print("Entering receive loop. CTRL-C to exit")
+        while True:
+            try:
+                print(wait_for_message(radio))
+            except KeyboardInterrupt:
+                break
     elif choice in prompt_options["Upload file"]:
-        path = input('path=')
+        path = input('path= ')
         upload_file(radio, path)
     elif choice in prompt_options["Send command"]:
         command_name = get_input_discrete("Select a command", command_map.keys())
         command_bytes, will_respond = command_map[command_name]
-        args = input('arguments=')
+        args = input('arguments= ')
         send_command(radio, command_bytes, args, will_respond)
     elif choice in prompt_options["Help"]:
         print_help()
