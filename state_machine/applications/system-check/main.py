@@ -29,7 +29,7 @@ Each test group contains:
     - if it is to be run in default mode
 """
 all_tests = [
-    ("SD Test / Clear Logs", "sd", tests.sd_test, True),
+    ("SD Test", "sd", tests.sd_test, True),
     ("IMU Test", "imu", tests.imu_test, True),
     ("Sun Sensor Test", "sun", tests.sun_sensor_test, True),
     ("Coil Driver Test", "coil", tests.coil_test, True),
