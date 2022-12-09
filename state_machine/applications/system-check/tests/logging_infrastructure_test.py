@@ -1,8 +1,3 @@
-"""
-System check module for PyCubed Mini satellite
-Logging Infrastructure Test
-"""
-
 from os import listdir
 from lib.pycubed import cubesat
 import time
