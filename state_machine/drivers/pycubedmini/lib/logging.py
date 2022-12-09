@@ -1,4 +1,4 @@
-from os import listdir, stat, statvfs, remove, mkdir, rmdir
+from os import listdir, statvfs, remove, mkdir, rmdir
 import time
 
 TIME_INTERVAL = 6 * 10 ** 11  # 10 minutes in nano seconds
@@ -124,7 +124,7 @@ class Logger():
 
     def log(self, msg,
             folder=DEFAULT_FOLDER,
-            buffer=False):
+            buffer=True):
         """
         Handle buffered vs. unbuffered logs
         User-side
@@ -138,19 +138,13 @@ class Logger():
         if folder not in listdir(f"{SD_DIR}logs/"):
             self.create_hardware_folder(folder)
 
-        # if we are writing to debug, unbuffer it by default
-        if folder == self.default_folder:
-            self.unbuffered_log(msg=msg, folder=folder)
-
-        # if we are not writing to debug, check if we're using the buffer or not
+        # if we are doing a buffered log
+        if buffer:
+            # add to buffer for folder
+            self.buffered_log(msg=msg, folder=folder)
+        # if we are not doing a buffered log
         else:
-            # if we are doing a buffered log
-            if buffer:
-                # add to buffer for folder
-                self.buffered_log(msg=msg, folder=folder)
-            # if we are not doing a buffered log
-            else:
-                self.unbuffered_log(msg=msg, folder=folder)
+            self.unbuffered_log(msg=msg, folder=folder)
 
     def get_buffer(self):
         return self.sd_buffer
