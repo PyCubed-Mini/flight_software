@@ -6,6 +6,7 @@ import tests.imu_test
 import tests.sun_sensor_test
 import tests.coil_test
 import tests.burnwire_test
+import tests.logging_infrastructure_test
 from print_utils import bold, normal, red, green
 try:
     import supervisor
@@ -28,13 +29,15 @@ Each test group contains:
     - if it is to be run in default mode
 """
 all_tests = [
-    ("SD Test", "sd", tests.sd_test, True),
+    ("SD Test / Clear Logs", "sd", tests.sd_test, True),
     ("IMU Test", "imu", tests.imu_test, True),
     ("Sun Sensor Test", "sun", tests.sun_sensor_test, True),
     ("Coil Driver Test", "coil", tests.coil_test, True),
     ("Burnwire Test", "burn", tests.burnwire_test, False),
     ("I2C_Scan", "i2c", tests.i2c_scan, False),
     ("Reset and Test NVM", "nvm", tests.nvm_access_test, True),
+    ("Logging Infrastructure Test / Clear Logs", "log",
+     tests.logging_infrastructure_test, True),
 ]
 
 def test_options(tests):
