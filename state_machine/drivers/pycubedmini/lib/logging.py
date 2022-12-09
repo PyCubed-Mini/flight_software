@@ -61,13 +61,16 @@ class Logger():
             logfile.write(msg)
             logfile.close()
 
-    def unbuffered_log(self, msg, folder=DEFAULT_FOLDER):
+    def unbuffered_log(self, msg, folder=DEFAULT_FOLDER, buffer_dump=False):
         """
         Write msg content to the correct folder
         """
         # calculate time interval info
         current_time = time.monotonic_ns()
         delta_time = current_time - self.logfile_start_time
+
+        if buffer_dump:
+            msg = f"\n{time.monotonic()}:  Dumping buffer:\n{msg}\n"
 
         # if it's the first log
         if [] == listdir(f"{SD_DIR}logs/{folder}"):
@@ -101,10 +104,8 @@ class Logger():
 
         # if the buffer is full, log
         if len(self.sd_buffer[folder]) > self.max_buffer_size:
-            # get msg from buffer
-            msg = self.sd_buffer[folder]
             # write to file
-            self.unbuffered_log(msg=msg, folder=folder)
+            self.unbuffered_log(msg=self.sd_buffer[folder], folder=folder, buffer_dump=True)
             # update buffer
             self.sd_buffer[folder] = ""
 
@@ -137,6 +138,9 @@ class Logger():
         # if this is the first log to the given folder, create the folder
         if folder not in listdir(f"{SD_DIR}logs/"):
             self.create_hardware_folder(folder)
+
+        # format message
+        msg = f"{time.monotonic()}:  {msg}\n"
 
         # if we are doing a buffered log
         if buffer:
