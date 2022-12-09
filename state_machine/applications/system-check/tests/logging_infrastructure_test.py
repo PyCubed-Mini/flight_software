@@ -4,10 +4,6 @@ import time
 
 sd_card_directory = "/sd/"
 
-time_interval = 5 * 10 ** 9
-file_name_interval = 10 ** 9
-max_buffer_size = 200
-
 
 async def run(result_dict):
     """
@@ -16,7 +12,7 @@ async def run(result_dict):
     Make sure that 2 files have been created as a result of these logs.
     """
 
-    cubesat.logger.time_interval = 5 * 1 ** 9  # five seconds
+    cubesat.logger.time_interval = 5 * 10 ** 9  # five seconds
     cubesat.logger.file_name_interval = 10 ** 9  # one second
     cubesat.logger.max_buffer_size = 200
 
@@ -57,7 +53,7 @@ async def run(result_dict):
         # write 2 files worth of messages (sleep 5 seconds between writes)
         while filenum < 2:
             # write buffered logs
-            cubesat.log(msg, folder=folders[i], buffer=True)
+            cubesat.log(msg, folder=folders[i])
 
             # if buffer is empty, increment count
             if sd_buffer[folders[i]] == "":
