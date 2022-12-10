@@ -6,9 +6,9 @@ import board
 import busio
 import digitalio
 from lib import pycubed_rfm9x_fsk
-from radio_utils.disk_buffered_message import DiskBufferedMessage
-from radio_utils import headers
-from radio_utils.commands import super_secret_code
+from lib.radio_utils.disk_buffered_message import DiskBufferedMessage
+from lib.radio_utils import headers
+from lib.radio_utils.commands import super_secret_code
 from lib.configuration import radio_configuration as rf_config
 
 def initialize_radio(cs, reset):
