@@ -176,10 +176,10 @@ async def read_loop(rfm9x):
         if oh == headers.DEFAULT:
             print(payload)
         elif oh == headers.MEMORY_BUFFERED_START or oh == headers.MEMORY_BUFFERED_MID or oh == headers.MEMORY_BUFFERED_END:
-            print('Recieved Naive')
+            print('Recieved memory buffered message')
             handle_memory_buffered(oh, data, payload)
         elif oh == headers.DISK_BUFFERED_START or oh == headers.DISK_BUFFERED_MID or oh == headers.DISK_BUFFERED_END:
-            print('Recieved chunk')
+            print('Recieved disk buffered message')
             handle_disk_buffered(oh, data, payload)
 
 def handle_memory_buffered(header, data, payload):
@@ -190,7 +190,7 @@ def handle_memory_buffered(header, data, payload):
         if payload != data.msg_last:
             data.msg += payload
         else:
-            data.debug('Repeated chunk')
+            data.debug('Repeated payload')
 
     if header == headers.MEMORY_BUFFERED_END:
         data.msg_last = bytes([])
@@ -199,18 +199,18 @@ def handle_memory_buffered(header, data, payload):
 
 
 def handle_disk_buffered(header, data, response):
-    if header == headers.CHUNK_START:
+    if header == headers.DISK_BUFFERED_START:
         data.cmsg = response
         data.cmsg_last = response
     else:
         if response != data.cmsg_last:
             data.cmsg += response
         else:
-            data.debug('Repeated chunk')
+            data.debug('Repeated payload')
         data.cmsg_last = response
 
-    if header == headers.CHUNK_END:
+    if header == headers.DISK_BUFFERED_END:
         data.cmsg_last = bytes([])
         data.cmsg = str(data.cmsg, 'utf-8')
-        print('Recieved message chunk')
+        print('Recieved disk buffered message')
         print(data.cmsg)
