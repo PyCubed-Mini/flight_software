@@ -11,6 +11,7 @@ from lib.radio_utils.disk_buffered_message import DiskBufferedMessage
 from lib.radio_utils import headers
 from lib.radio_utils.commands import super_secret_code
 from lib.configuration import radio_configuration as rf_config
+from shell_utils import bold, normal
 
 def initialize_radio(cs, reset):
     """
@@ -176,8 +177,9 @@ def print_message(header, message):
 def print_beacon(beacon):
     beacon_dict = unpack_beacon(beacon)
     print(f"\n{bold}Beacon:{normal}")
-    for _, bv in beacon_dict:
-        print(f"\t{bv["str"]} = {bv["value"]}")
+    for bk in beacon_dict:
+        bv = beacon_dict[bk]
+        print(f"\t{bv['str']} = {bv['value']}")
 
 
 async def read_loop(radio):
