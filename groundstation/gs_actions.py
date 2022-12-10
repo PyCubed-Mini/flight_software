@@ -80,6 +80,9 @@ async def wait_for_message(radio):
         oh = header[5]
         if oh == headers.DEFAULT:
             return payload
+        elif oh == headers.BEACON:
+            print("Received beacon")
+            return payload
         elif oh == headers.MEMORY_BUFFERED_START or oh == headers.MEMORY_BUFFERED_MID or oh == headers.MEMORY_BUFFERED_END:
             handle_memory_buffered(oh, data, payload)
             if oh == headers.MEMORY_BUFFERED_END:
