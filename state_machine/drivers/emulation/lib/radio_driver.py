@@ -24,6 +24,8 @@ class Radio:
         self._rx_queue = queue.LifoQueue()
         self._rx_time_bias = 0.5
         self._rx_time_dev = 0.3
+        self._last_rssi = -147.0
+        self._frequency_error = 123.45
 
     def listen(self):
         self.listening = True
@@ -37,11 +39,11 @@ class Radio:
 
     @property
     def last_rssi(self):
-        return 147
+        return self._last_rssi
 
     @property
     def frequency_error(self):
-        return 1.2345
+        return self._frequency_error
 
     def sleep(self):
         self.listening = False
