@@ -1,1 +1,0 @@
-../../state_machine/drivers/pycubedmini/lib/radio_defaults.py
