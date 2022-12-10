@@ -11,6 +11,18 @@ commands_by_name = {
     {"bytes": cb, "will_respond": commands[cb]["will_respond"], "has_args": commands[cb]["has_args"]}
     for cb in commands.keys()}
 
+prompt_options = {"Receive loop": ("r", "receive"),
+                  "Upload file": ("u", "upload"),
+                  "Send command": ("c", "command"),
+                  "Help": ("h", "print_help"),
+                  "Toggle verbose debug prints": ("v", "verbose"),
+                  "Quit": ("q", "quit")}
+
+def print_help():
+    print(f"\n{yellow}Groundstation shell help:{normal}")
+    for po in prompt_options:
+        print(f"{bold}{po}{normal}: {prompt_options[po]}")
+
 
 async def gs_shell_main():
     print(f"\n{bold}{yellow}PyCubed-Mini Groundstation Shell{normal}\n")
@@ -34,26 +46,17 @@ async def gs_shell_main():
 
     print_radio_configuration(radio)
 
-    if "y" == get_input_discrete(
-            f"Change radio parameters? {bold}(y/N){normal}", ["", "y", "n"]):
+    if get_input_discrete(
+            f"Change radio parameters? {bold}(y/N){normal}", ["", "y", "n"]) == "y":
         manually_configure_radio(radio)
         print_radio_configuration(radio)
 
-    prompt_options = {"Receive loop": ("r", "receive"),
-                      "Upload file": ("u", "upload"),
-                      "Send command": ("c", "command"),
-                      "Help": ("h", "print_help"),
-                      "Quit": ("q", "quit")}
-
-    def print_help():
-        print(f"\n{yellow}Groundstation shell help:{normal}")
-        for po in prompt_options:
-            print(f"{bold}{po}{normal}: {prompt_options[po]}")
+    verbose = False
 
     print_help()
 
+    flattend_prompt_options = [v for pov in prompt_options.values() for v in pov]
     while True:
-        flattend_prompt_options = [v for pov in prompt_options.values() for v in pov]
         choice = get_input_discrete("Choose an action", flattend_prompt_options)
         if choice in prompt_options["Receive loop"]:
             print("Entering receive loop. CTRL-C to exit")
@@ -63,16 +66,24 @@ async def gs_shell_main():
                 except KeyboardInterrupt:
                     break
         elif choice in prompt_options["Upload file"]:
-            path = input('path= ')
+            path = input('path = ')
             await upload_file(radio, path)
         elif choice in prompt_options["Send command"]:
             command_name = get_input_discrete("Select a command", list(commands_by_name.keys())).upper()
             command_bytes = commands_by_name[command_name]["bytes"]
             will_respond = commands_by_name[command_name]["will_respond"]
-            args = input('arguments= ')
-            await send_command(radio, command_bytes, args, will_respond)
+            args = input('arguments = ')
+            success, response = await send_command(radio, command_bytes, args, will_respond, debug=verbose)
+            if success:
+                print("Command successful")
+                print(f"Response: {response}")
+            else:
+                print("Command failed")
         elif choice in prompt_options["Help"]:
             print_help()
+        elif choice in prompt_options["Toggle verbose debug prints"]:
+            verbose = not verbose
+            print(f"Verbose: {verbose}")
         elif choice in prompt_options["Quit"]:
             break
 

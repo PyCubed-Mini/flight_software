@@ -69,17 +69,44 @@ def pi_cs_reset():
 
 
 async def wait_for_message(radio):
-    pass
+    data = _data()
 
-async def send_command(radio, command_bytes, args, will_respond):
+    while True:
+        res = await receive(radio)
+        if res is None:
+            continue
+        header, payload = res
+
+        oh = header[5]
+        if oh == headers.DEFAULT:
+            return payload
+        elif oh == headers.MEMORY_BUFFERED_START or oh == headers.MEMORY_BUFFERED_MID or oh == headers.MEMORY_BUFFERED_END:
+            handle_memory_buffered(oh, data, payload)
+            if oh == headers.MEMORY_BUFFERED_END:
+                return data.msg
+
+        elif oh == headers.DISK_BUFFERED_START or oh == headers.DISK_BUFFERED_MID or oh == headers.DISK_BUFFERED_END:
+            handle_disk_buffered(oh, data, payload)
+            if oh == headers.DISK_BUFFERED_END:
+                return data.cmsg
+
+async def send_command(radio, command_bytes, args, will_respond, debug=False):
+    success = False
+    response = None
     msg = bytes([headers.COMMAND]) + super_secret_code + command_bytes + bytes(args, 'utf-8')
-    if await radio.send_with_ack(msg, debug=True):
-        print('Successfully sent command')
+    if await radio.send_with_ack(msg, debug=debug):
+        if debug:
+            print('Successfully sent command')
         if will_respond:
-            print('Waiting for response')
-            await wait_for_message(radio)
+            if debug:
+                print('Waiting for response')
+            response = await wait_for_message(radio)
+        success = True
     else:
-        print('Failed to send command')
+        if debug:
+            print('Failed to send command')
+        success = False
+    return success, response
 
 def download_file():
     pass
@@ -104,3 +131,86 @@ async def upload_file(radio, path):
 
         if msg.done():
             break
+
+
+async def receive(rfm9x, with_ack=True):
+    """Recieve a packet.  Returns None if no packet was received.
+    Otherwise returns (header, payload)"""
+    packet = await rfm9x.receive(with_ack=with_ack, with_header=True, debug=True)
+    if packet is None:
+        return None
+    return packet[0:6], packet[6:]
+
+
+def print_res(res):
+    if res is None:
+        print("No packet received")
+    else:
+        header, payload = res
+        print("Received (raw header):", [hex(x) for x in header])
+        if header[5] == headers.DEFAULT:
+            print('Received beacon')
+        else:
+            packet_text = str(payload, "utf-8")
+            print(packet_text)
+
+
+class _data:
+
+    def __init__(self):
+        self.msg = bytes([])
+        self.msg_last = bytes([])
+        self.cmsg = bytes([])
+        self.cmsg_last = bytes([])
+
+async def read_loop(rfm9x):
+    data = _data()
+
+    while True:
+        res = await receive(rfm9x)
+        if res is None:
+            continue
+        header, payload = res
+
+        oh = header[5]
+        if oh == headers.DEFAULT:
+            print(payload)
+        elif oh == headers.MEMORY_BUFFERED_START or oh == headers.MEMORY_BUFFERED_MID or oh == headers.MEMORY_BUFFERED_END:
+            print('Recieved Naive')
+            handle_memory_buffered(oh, data, payload)
+        elif oh == headers.DISK_BUFFERED_START or oh == headers.DISK_BUFFERED_MID or oh == headers.DISK_BUFFERED_END:
+            print('Recieved chunk')
+            handle_disk_buffered(oh, data, payload)
+
+def handle_memory_buffered(header, data, payload):
+    if header == headers.MEMORY_BUFFERED_START:
+        data.msg_last = payload
+        data.msg = payload
+    else:
+        if payload != data.msg_last:
+            data.msg += payload
+        else:
+            data.debug('Repeated chunk')
+
+    if header == headers.MEMORY_BUFFERED_END:
+        data.msg_last = bytes([])
+        data.msg = str(data.msg, 'utf-8')
+        print(data.msg)
+
+
+def handle_disk_buffered(header, data, response):
+    if header == headers.CHUNK_START:
+        data.cmsg = response
+        data.cmsg_last = response
+    else:
+        if response != data.cmsg_last:
+            data.cmsg += response
+        else:
+            data.debug('Repeated chunk')
+        data.cmsg_last = response
+
+    if header == headers.CHUNK_END:
+        data.cmsg_last = bytes([])
+        data.cmsg = str(data.cmsg, 'utf-8')
+        print('Recieved message chunk')
+        print(data.cmsg)
