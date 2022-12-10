@@ -44,4 +44,12 @@ def unpack_beacon(bytes):
     gyro = array([gyro0, gyro1, gyro2])
     mag = array([mag0, mag1, mag2])
 
-    return boot_count, vbatt, cpu_temp, imu_temp, gyro, mag, rssi, fei
+    return {"boot_count": {"str": "Boot count", "value": boot_count},
+            "vbatt": {"str": "Battery voltage", "value": vbatt},
+            "cpu_temp": {"str": "CPU temp", "value": cpu_temp},
+            "imu_temp": {"str": "IMU temp", "value": imu_temp},
+            "gyro": {"str": "Gyro", "value": gyro},
+            "mag": {"str": "Mag", "value": mag},
+            "rssi": {"str": "RSSI", "value": rssi},
+            "fei": {"str": "FEI", "value": fei},
+            }

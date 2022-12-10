@@ -40,13 +40,13 @@ class TestLogs(unittest.TestCase):
 
         pkt = beacon_packet()
 
-        boot_count_out, vbatt_out, cpu_temp_out, imu_temp_out, gyro_out, mag_out, rssi_out, fei_out = unpack_beacon(pkt)
+        unpacked = unpack_beacon(pkt)
 
-        self.assertEqual(boot_count_in, boot_count_out)
-        self.assertAlmostEqual(vbatt_in + 0.01, vbatt_out, places=5)
-        self.assertAlmostEqual(cpu_temp_in, cpu_temp_out, places=5)
-        self.assertAlmostEqual(imu_temp_in, imu_temp_out, places=5)
-        self.assertAlmostEqual(rssi_in, rssi_out, places=5)
-        self.assertAlmostEqual(fei_in, fei_out, places=5)
-        testing.assert_array_almost_equal(gyro_in, gyro_out)
-        testing.assert_array_almost_equal(mag_in, mag_out)
+        self.assertEqual(boot_count_in, unpacked["boot_count"]["value"])
+        self.assertAlmostEqual(vbatt_in + 0.01, unpacked["vbatt"]["value"], places=5)
+        self.assertAlmostEqual(cpu_temp_in, unpacked["cpu_temp"]["value"], places=5)
+        self.assertAlmostEqual(imu_temp_in, unpacked["imu_temp"]["value"], places=5)
+        self.assertAlmostEqual(rssi_in, unpacked["rssi"]["value"], places=5)
+        self.assertAlmostEqual(fei_in, unpacked["fei"]["value"], places=5)
+        testing.assert_array_almost_equal(gyro_in, unpacked["gyro"]["value"])
+        testing.assert_array_almost_equal(mag_in, unpacked["mag"]["value"])
