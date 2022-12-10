@@ -6,6 +6,7 @@ import board
 import busio
 import digitalio
 from lib import pycubed_rfm9x_fsk
+from lib.logs import unpack_beacon
 from lib.radio_utils.disk_buffered_message import DiskBufferedMessage
 from lib.radio_utils import headers
 from lib.radio_utils.commands import super_secret_code
@@ -67,32 +68,6 @@ def pi_cs_reset():
 
     return cs, reset
 
-
-async def wait_for_message(radio):
-    data = _data()
-
-    while True:
-        res = await receive(radio)
-        if res is None:
-            continue
-        header, payload = res
-
-        oh = header[5]
-        if oh == headers.DEFAULT:
-            return payload
-        elif oh == headers.BEACON:
-            print("Received beacon")
-            return payload
-        elif oh == headers.MEMORY_BUFFERED_START or oh == headers.MEMORY_BUFFERED_MID or oh == headers.MEMORY_BUFFERED_END:
-            handle_memory_buffered(oh, data, payload)
-            if oh == headers.MEMORY_BUFFERED_END:
-                return data.msg
-
-        elif oh == headers.DISK_BUFFERED_START or oh == headers.DISK_BUFFERED_MID or oh == headers.DISK_BUFFERED_END:
-            handle_disk_buffered(oh, data, payload)
-            if oh == headers.DISK_BUFFERED_END:
-                return data.cmsg
-
 async def send_command(radio, command_bytes, args, will_respond, debug=False):
     success = False
     response = None
@@ -103,7 +78,7 @@ async def send_command(radio, command_bytes, args, will_respond, debug=False):
         if will_respond:
             if debug:
                 print('Waiting for response')
-            response = await wait_for_message(radio)
+            type, response = await wait_for_message(radio)
         success = True
     else:
         if debug:
@@ -166,24 +141,42 @@ class _data:
         self.cmsg = bytes([])
         self.cmsg_last = bytes([])
 
-async def read_loop(rfm9x):
+async def wait_for_message(radio):
     data = _data()
 
     while True:
-        res = await receive(rfm9x)
+        res = await receive(radio)
         if res is None:
             continue
         header, payload = res
 
         oh = header[5]
-        if oh == headers.DEFAULT:
-            print(payload)
+        if oh == headers.DEFAULT or oh == headers.BEACON:
+            return oh, payload
         elif oh == headers.MEMORY_BUFFERED_START or oh == headers.MEMORY_BUFFERED_MID or oh == headers.MEMORY_BUFFERED_END:
-            print('Recieved memory buffered message')
             handle_memory_buffered(oh, data, payload)
+            if oh == headers.MEMORY_BUFFERED_END:
+                return headers.MEMORY_BUFFERED_START, data.msg
+
         elif oh == headers.DISK_BUFFERED_START or oh == headers.DISK_BUFFERED_MID or oh == headers.DISK_BUFFERED_END:
-            print('Recieved disk buffered message')
             handle_disk_buffered(oh, data, payload)
+            if oh == headers.DISK_BUFFERED_END:
+                return headers.DISK_BUFFERED_START, data.cmsg
+
+def print_message(header, message):
+    if header == headers.DEFAULT:
+        print(f"Default: {message}")
+    elif header == headers.BEACON:
+        print_beacon(message)
+
+def print_beacon(beacon):
+    beacon_dict = unpack_beacon(beacon)
+
+
+async def read_loop(radio):
+
+    while True:
+        print_message(wait_for_message(radio))
 
 def handle_memory_buffered(header, data, payload):
     if header == headers.MEMORY_BUFFERED_START:
