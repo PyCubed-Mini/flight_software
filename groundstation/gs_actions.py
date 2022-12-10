@@ -170,6 +170,8 @@ def print_message(header, message):
         print_beacon(message)
     elif header == headers.MEMORY_BUFFERED_START or header == headers.DISK_BUFFERED_START:
         print(f"Buffered:\n\t{message}")
+    else:
+        print(f"Unknown: {message}")
 
 def print_beacon(beacon):
     beacon_dict = unpack_beacon(beacon)
