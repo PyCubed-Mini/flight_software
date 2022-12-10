@@ -168,9 +168,14 @@ def print_message(header, message):
         print(f"Default: {message}")
     elif header == headers.BEACON:
         print_beacon(message)
+    elif header == headers.MEMORY_BUFFERED_START or header == headers.DISK_BUFFERED_START:
+        print(f"Buffered:\n\t{message}")
 
 def print_beacon(beacon):
     beacon_dict = unpack_beacon(beacon)
+    print(f"\n{bold}Beacon:{normal}")
+    for _, bv in beacon_dict:
+        print(f"\t{bv["str"]} = {bv["value"]}")
 
 
 async def read_loop(radio):
