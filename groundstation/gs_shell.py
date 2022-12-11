@@ -5,7 +5,16 @@ from lib.radio_utils.commands import commands
 from shell_utils import bold, normal, red, green, yellow, blue, get_input_discrete, manually_configure_radio, print_radio_configuration
 from gs_shell_tasks import *
 from gs_setup import *
+try:
+    import supervisor
+except ImportError:
+    supervisor = None
 import tasko
+
+
+# prevent board from reloading in the middle of the test
+if supervisor is not None:
+    supervisor.disable_autoreload()
 
 prompt_options = {"Receive loop": ("r", "receive"),
                   "Upload file": ("u", "upload"),
@@ -57,7 +66,7 @@ def gs_shell_main_loop():
     verbose = True
     while True:
         try:
-            choice = get_input_discrete("Choose an action", flattend_prompt_options)
+            choice = get_input_discrete("\nChoose an action", flattend_prompt_options)
             if choice in prompt_options["Receive loop"]:
                 print("Entering receive loop. CTRL-C to exit")
                 while True:
@@ -91,7 +100,8 @@ def gs_shell_main_loop():
                 break
 
         except KeyboardInterrupt:
-            print(f"{red}Enter q to quit{normal}")
+            print(f"\n{red}Enter q to quit{normal}")
+            tasko.reset()
             pass
 
 

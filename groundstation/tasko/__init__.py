@@ -60,7 +60,4 @@ def reset():
     sleep = get_loop().sleep
     suspend = get_loop().suspend
 
-    # ignore warnings about tasks not getting run
-    warnings.simplefilter("ignore")
     run = get_loop().run
-    warnings.simplefilter("default")

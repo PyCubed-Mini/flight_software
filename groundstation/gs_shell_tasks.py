@@ -12,4 +12,5 @@ async def send_command_task(radio, command_bytes, args, will_respond, debug=Fals
 async def read_loop(radio):
 
     while True:
-        print_message(wait_for_message(radio))
+        header, message = await wait_for_message(radio)
+        print_message(header, message)
