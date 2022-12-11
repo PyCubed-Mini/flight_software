@@ -52,43 +52,47 @@ if get_input_discrete(
 
 print_help()
 
-verbose = False
 
 def gs_shell_main_loop():
+    verbose = True
     while True:
-        choice = get_input_discrete("Choose an action", flattend_prompt_options)
-        if choice in prompt_options["Receive loop"]:
-            print("Entering receive loop. CTRL-C to exit")
-            while True:
-                tasko.add_task(read_loop(), 1)
-                try:
+        try:
+            choice = get_input_discrete("Choose an action", flattend_prompt_options)
+            if choice in prompt_options["Receive loop"]:
+                print("Entering receive loop. CTRL-C to exit")
+                while True:
+                    tasko.add_task(read_loop(radio), 1)
                     tasko.run()
-                except KeyboardInterrupt:
-                    tasko.reset()
-                    break
-        elif choice in prompt_options["Upload file"]:
-            path = input('path = ')
-            tasko.add_task(upload_file(radio, path), 1)
-            tasko.run()
-            tasko.reset()
+            elif choice in prompt_options["Upload file"]:
+                source = input('source path = ')
+                dest = input('destination path = ')
+                tasko.add_task(upload_file(radio, source, dest), 1)
+                tasko.run()
+                tasko.reset()
 
-        elif choice in prompt_options["Send command"]:
-            command_name = get_input_discrete("Select a command", list(commands_by_name.keys())).upper()
-            command_bytes = commands_by_name[command_name]["bytes"]
-            will_respond = commands_by_name[command_name]["will_respond"]
-            args = input('arguments = ')
+            elif choice in prompt_options["Send command"]:
+                command_name = get_input_discrete("Select a command", list(commands_by_name.keys())).upper()
+                command_bytes = commands_by_name[command_name]["bytes"]
+                will_respond = commands_by_name[command_name]["will_respond"]
+                args = input('arguments = ')
 
-            tasko.add_task(send_command_task(radio, command_bytes, args, will_respond, debug=verbose), 1)
-            tasko.run()
-            tasko.reset()
+                tasko.add_task(send_command_task(radio, command_bytes, args, will_respond, debug=verbose), 1)
+                tasko.run()
+                tasko.reset()
 
-        elif choice in prompt_options["Help"]:
-            print_help()
-        elif choice in prompt_options["Toggle verbose debug prints"]:
-            verbose = not verbose
-            print(f"Verbose: {verbose}")
-        elif choice in prompt_options["Quit"]:
-            break
+            elif choice in prompt_options["Help"]:
+                print_help()
+
+            elif choice in prompt_options["Toggle verbose debug prints"]:
+                verbose = not verbose
+                print(f"Verbose: {verbose}")
+
+            elif choice in prompt_options["Quit"]:
+                break
+
+        except KeyboardInterrupt:
+            print(f"{red}Enter q to quit{normal}")
+            pass
 
 
 gs_shell_main_loop()
