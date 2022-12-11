@@ -1,77 +1,21 @@
 """
-Provides individual groundstation actions such as upload a file,
-wait for packet, or send a command.
 """
-import board
-import busio
-import digitalio
-from lib import pycubed_rfm9x_fsk
+import json
 from lib.logs import unpack_beacon
 from lib.radio_utils.disk_buffered_message import DiskBufferedMessage
 from lib.radio_utils import headers
-from lib.radio_utils.commands import super_secret_code
-from lib.configuration import radio_configuration as rf_config
+from lib.radio_utils.commands import super_secret_code, commands
 from shell_utils import bold, normal
 
-def initialize_radio(cs, reset):
-    """
-    Initialize the radio - uses lib/configuration/radio_configuration to configure with defaults
-    """
-
-    spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-
-    radio = pycubed_rfm9x_fsk.RFM9x(
-        spi,
-        cs,
-        reset,
-        rf_config.FREQUENCY,
-        checksum=rf_config.CHECKSUM)
-
-    # configure to match satellite
-    radio.tx_power = rf_config.TX_POWER
-    radio.bitrate = rf_config.BITRATE
-    radio.frequency_deviation = rf_config.FREQUENCY_DEVIATION
-    radio.rx_bandwidth = rf_config.RX_BANDWIDTH
-    radio.preamble_length = rf_config.PREAMBLE_LENGTH
-    radio.ack_delay = rf_config.ACK_DELAY
-    radio.ack_wait = rf_config.ACK_WAIT
-    radio.node = rf_config.GROUNDSTATION_ID
-    radio.destination = rf_config.SATELLITE_ID
-
-    return radio
-
-def satellite_cs_reset():
-    # pocketqube
-    cs = digitalio.DigitalInOut(board.RF_CS)
-    reset = digitalio.DigitalInOut(board.RF_RST)
-    cs.switch_to_output(value=True)
-    reset.switch_to_output(value=True)
-
-    radio_DIO0 = digitalio.DigitalInOut(board.RF_IO0)
-    radio_DIO0.switch_to_input()
-    radio_DIO1 = digitalio.DigitalInOut(board.RF_IO1)
-    radio_DIO1.switch_to_input()
-
-    return cs, reset
-
-def feather_cs_reset():
-    # feather
-    cs = digitalio.DigitalInOut(board.D5)
-    reset = digitalio.DigitalInOut(board.D6)
-    cs.switch_to_output(value=True)
-    reset.switch_to_output(value=True)
-
-    return cs, reset
-
-def pi_cs_reset():
-    cs = digitalio.DigitalInOut(board.CE1)
-    reset = digitalio.DigitalInOut(board.D25)
-
-    return cs, reset
+commands_by_name = {
+    commands[cb]["name"]:
+    {"bytes": cb, "will_respond": commands[cb]["will_respond"], "has_args": commands[cb]["has_args"]}
+    for cb in commands.keys()}
 
 async def send_command(radio, command_bytes, args, will_respond, debug=False):
     success = False
     response = None
+    header = None
     msg = bytes([headers.COMMAND]) + super_secret_code + command_bytes + bytes(args, 'utf-8')
     if await radio.send_with_ack(msg, debug=debug):
         if debug:
@@ -79,31 +23,56 @@ async def send_command(radio, command_bytes, args, will_respond, debug=False):
         if will_respond:
             if debug:
                 print('Waiting for response')
-            type, response = await wait_for_message(radio)
+            header, response = await wait_for_message(radio)
+            if debug:
+                print_message(type, response)
         success = True
     else:
         if debug:
             print('Failed to send command')
         success = False
-    return success, response
+    return success, header, response
 
-def download_file():
-    pass
+async def move_file(radio, source_path, destination_path, debug=False):
+    arg_string = json.dumps([source_path, destination_path])
+    success, _, response = send_command(
+        radio,
+        commands_by_name["MOVE_FILE"]["bytes"],
+        arg_string,
+        commands_by_name["MOVE_FILE"]["will_respond"],
+        debug=debug)
+    if success and debug:
+        print(f"{bold}MOVE_FILE Response:{normal} {response}")
 
-async def upload_file(radio, path):
-    msg = DiskBufferedMessage(0, path)
-    while True:
+    return success
+
+async def request_file(radio, path, debug=False):
+    success, header, response = send_command(
+        radio,
+        commands_by_name["REQUEST_FILE"]["bytes"],
+        path,
+        commands_by_name["REQUEST_FILE"]["will_respond"],
+        debug=debug)
+    if success:
+        print(f"{bold}REQUEST_FILE:{normal} {path}\n\nContents:\n{response}")
+
+    return success, header, response
+
+async def upload_file(radio, local_path, satellite_path, debug=False):
+    msg = DiskBufferedMessage(0, local_path)
+    success = True
+    while True:  # TODO: timeout
         packet, with_ack = msg.packet()
 
-        debug_packet = str(packet)[:20] + "...." if len(packet) > 23 else packet
-        print(f"Sending packet: {debug_packet}, with_ack: {with_ack}")
+        if debug:
+            debug_packet = str(packet)[:20] + "...." if len(packet) > 23 else packet
+            print(f"Sending packet: {debug_packet}, with_ack: {with_ack}")
 
         if with_ack:
-            if await radio.send_with_ack(packet, debug=True):
-                print('ack')
+            got_ack = await radio.send_with_ack(packet, debug=True)
+            if got_ack:
                 msg.ack()
             else:
-                print('no ack')
                 msg.no_ack()
         else:
             await radio.send(packet, keep_listening=True)
@@ -111,6 +80,8 @@ async def upload_file(radio, path):
         if msg.done():
             break
 
+    success &= await move_file(radio, "disk_buffered_message", satellite_path, debug=debug)
+    return success
 
 async def receive(rfm9x, with_ack=True):
     """Recieve a packet.  Returns None if no packet was received.
@@ -119,20 +90,6 @@ async def receive(rfm9x, with_ack=True):
     if packet is None:
         return None
     return packet[0:6], packet[6:]
-
-
-def print_res(res):
-    if res is None:
-        print("No packet received")
-    else:
-        header, payload = res
-        print("Received (raw header):", [hex(x) for x in header])
-        if header[5] == headers.DEFAULT:
-            print('Received beacon')
-        else:
-            packet_text = str(payload, "utf-8")
-            print(packet_text)
-
 
 class _data:
 
@@ -180,12 +137,6 @@ def print_beacon(beacon):
     for bk in beacon_dict:
         bv = beacon_dict[bk]
         print(f"\t{bv['str']} = {bv['value']}")
-
-
-async def read_loop(radio):
-
-    while True:
-        print_message(wait_for_message(radio))
 
 def handle_memory_buffered(header, data, payload):
     if header == headers.MEMORY_BUFFERED_START:
