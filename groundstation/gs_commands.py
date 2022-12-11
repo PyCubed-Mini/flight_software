@@ -5,7 +5,7 @@ from lib.logs import unpack_beacon
 from lib.radio_utils.disk_buffered_message import DiskBufferedMessage
 from lib.radio_utils import headers
 from lib.radio_utils.commands import super_secret_code, commands
-from shell_utils import bold, normal
+from shell_utils import bold, normal, red
 
 commands_by_name = {
     commands[cb]["name"]:
@@ -41,8 +41,17 @@ async def move_file(radio, source_path, destination_path, debug=False):
         arg_string,
         commands_by_name["MOVE_FILE"]["will_respond"],
         debug=debug)
-    if success and debug:
-        print(f"{bold}MOVE_FILE Response:{normal} {response}")
+
+    if "success" in str(response).lower():
+        success &= True
+    else:
+        success &= False
+
+    if debug:
+        if success:
+            print(f"{bold}MOVE_FILE Response:{normal} {response}")
+        else:
+            print(f"{bold}MOVE_FILE Response:{normal} {red}FAILED{normal}")
 
     return success
 
@@ -53,15 +62,38 @@ async def request_file(radio, path, debug=False):
         path,
         commands_by_name["REQUEST_FILE"]["will_respond"],
         debug=debug)
-    if success:
-        print(f"{bold}REQUEST_FILE:{normal} {path}\n\nContents:\n{response}")
+
+    if header == headers.DEFAULT:
+        success &= False  # this is not a DiskBufferedMessage - an error must have occurred
+
+    if debug:
+        if success:
+            print(f"{bold}REQUEST_FILE:{normal} {path}\n\nContents:\n{response}")
+        else:
+            print(f"{bold}REQUEST_FILE:{normal} {path} {red}FAILED{normal}")
 
     return success, header, response
 
 async def upload_file(radio, local_path, satellite_path, debug=False):
     msg = DiskBufferedMessage(0, local_path)
+
+    success = send_message(radio, msg, debug=debug)
+
+    if success:
+        success &= await move_file(radio, "/sd/disk_buffered_message", satellite_path, debug=debug)
+    return success
+
+async def receive(rfm9x, with_ack=True):
+    """Recieve a packet.  Returns None if no packet was received.
+    Otherwise returns (header, payload)"""
+    packet = await rfm9x.receive(with_ack=with_ack, with_header=True, debug=True)
+    if packet is None:
+        return None
+    return packet[0:6], packet[6:]
+
+async def send_message(radio, msg, debug=False):
     success = True
-    while True:  # TODO: timeout
+    while True:
         packet, with_ack = msg.packet()
 
         if debug:
@@ -73,23 +105,15 @@ async def upload_file(radio, local_path, satellite_path, debug=False):
             if got_ack:
                 msg.ack()
             else:
-                msg.no_ack()
+                success = False
+                break
         else:
             await radio.send(packet, keep_listening=True)
 
         if msg.done():
             break
 
-    success &= await move_file(radio, "disk_buffered_message", satellite_path, debug=debug)
     return success
-
-async def receive(rfm9x, with_ack=True):
-    """Recieve a packet.  Returns None if no packet was received.
-    Otherwise returns (header, payload)"""
-    packet = await rfm9x.receive(with_ack=with_ack, with_header=True, debug=True)
-    if packet is None:
-        return None
-    return packet[0:6], packet[6:]
 
 class _data:
 
