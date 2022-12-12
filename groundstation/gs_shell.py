@@ -1,7 +1,6 @@
 """
 Provides a basic shell-like interface to send and receive data from the satellite
 """
-from lib.radio_utils.commands import commands
 from shell_utils import bold, normal, red, green, yellow, blue, get_input_discrete, manually_configure_radio, print_radio_configuration
 from gs_shell_tasks import *
 from gs_setup import *

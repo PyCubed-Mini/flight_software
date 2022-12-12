@@ -164,7 +164,7 @@ def print_beacon(beacon):
             bvstr = f"{bv:.4}"
         else:
             bvstr = str(bv)
-        print(f"\t{bk} ".ljust(35, '.') + " " + bvstr)
+        print(f"\t{bk:.<35}" + " " + bvstr)
 
 def handle_memory_buffered(header, data, payload):
     if header == headers.MEMORY_BUFFERED_START:
