@@ -160,7 +160,11 @@ def print_beacon(beacon):
     print(f"\n{bold}Beacon:{normal}")
     for bk in beacon_dict:
         bv = beacon_dict[bk]
-        print(f"\t{bv['str']} = {bv['value']}")
+        if isinstance(bv, float):
+            bvstr = f"{bv:.4}"
+        else:
+            bvstr = str(bv)
+        print(f"\t{bk} ".ljust(35, '.') + " " + bvstr)
 
 def handle_memory_buffered(header, data, payload):
     if header == headers.MEMORY_BUFFERED_START:
