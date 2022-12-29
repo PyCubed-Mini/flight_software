@@ -167,16 +167,16 @@ def request_beacon(task):
 
 def get_rtc(task):
     """Get the RTC time"""
-    _downlink_msg(_pack(tuple(cubesat.rtc.datetime)))
+    _downlink_msg(_pack(tuple(cubesat.datetime)))
 
 def get_rtc_utime(task):
     """Get the RTC time as a unix timestamp"""
-    _downlink_msg(struct.pack('i', time.mktime(cubesat.rtc.datetime)))
+    _downlink_msg(struct.pack('i', time.mktime(cubesat.datetime)))
 
 def set_rtc(task, args):
     """Set the RTC to the passed time"""
     ymdhms = _unpack(args)  # year, month, day, hour, minute, second
-    cubesat.rtc.datetime = time.struct_time(ymdhms + [-1, -1, -1])
+    cubesat.datetime = time.struct_time(ymdhms + [-1, -1, -1])
 
 def set_rtc_utime(task, args):
     """Set the RTC to the passed time
@@ -186,7 +186,7 @@ def set_rtc_utime(task, args):
     utime = struct.unpack(args)
     utime = utime[0]  # unpack returns a "tuple" with one element
     t = time.localtime(utime)
-    cubesat.rtc.datetime = t
+    cubesat.datetime = t
 
 
 """
