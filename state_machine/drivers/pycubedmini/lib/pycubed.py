@@ -348,7 +348,9 @@ class _Satellite:
     def rtc(self):
         """ Initialize Real Time Clock """
         try:
-            return PCF8523(self.i2c(hw_config.RTC_I2C))
+            rtc = PCF8523(self.i2c(hw_config.RTC_I2C))
+            rtc.high_capacitance = False
+            return rtc
         except Exception as e:
             print(f'[ERROR][Initializing RTC] {e}, ' +
                   f'is HARDWARE_VERSION = {hw_config.HARDWARE_VERSION} correct?')
