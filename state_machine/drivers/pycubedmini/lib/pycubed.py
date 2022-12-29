@@ -64,13 +64,13 @@ class _Satellite:
     c_uplink = multiByte(num_bytes=4, lowest_register=8)
 
     # NVM for date/time retention
-    c_tm_year = multiByte(num_bytes=1, lowest_register=13)
-    c_tm_mon = multiByte(num_bytes=1, lowest_register=14)
-    c_tm_mday = multiByte(num_bytes=1, lowest_register=15)
-    c_tm_hour = multiByte(num_bytes=1, lowest_register=16)
-    c_tm_min = multiByte(num_bytes=1, lowest_register=17)
-    c_tm_sec = multiByte(num_bytes=1, lowest_register=18)
-    c_tm_wday = multiByte(num_bytes=1, lowest_register=19)
+    c_tm_year = multiByte(num_bytes=2, lowest_register=13)
+    c_tm_mon = multiByte(num_bytes=1, lowest_register=15)
+    c_tm_mday = multiByte(num_bytes=1, lowest_register=16)
+    c_tm_hour = multiByte(num_bytes=1, lowest_register=17)
+    c_tm_min = multiByte(num_bytes=1, lowest_register=18)
+    c_tm_sec = multiByte(num_bytes=1, lowest_register=19)
+    c_tm_wday = multiByte(num_bytes=1, lowest_register=20)
 
     instance = None
     data_cache = {}
@@ -360,6 +360,7 @@ class _Satellite:
             rtc = PCF8523(self.i2c(hw_config.RTC_I2C))
             rtc.high_capacitance = False
             if rtc.lost_power:
+                print(f"RTC lost power, RTC time = {rtc.datetime}, restoring to {self._nvm_datetime}")
                 rtc.datetime = self._nvm_datetime
             return rtc
         except Exception as e:
@@ -493,7 +494,7 @@ class _Satellite:
 
     @property
     def _nvm_datetime(self):
-        return time.struct_time(
+        return time.struct_time((
             self.c_tm_year,
             self.c_tm_mon,
             self.c_tm_mday,
@@ -503,7 +504,7 @@ class _Satellite:
             self.c_tm_wday,
             -1,
             -1
-        )
+        ))
 
     @_nvm_datetime.setter
     def _nvm_datetime(self, dt):
