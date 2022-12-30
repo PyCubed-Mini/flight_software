@@ -30,6 +30,7 @@ class _Satellite:
     # Define NVM flags
     f_contact = bitFlag(register=0, bit=1)
     f_burn = bitFlag(register=0, bit=2)
+    f_datetime_valid = bitFlag(register=0, bit=3)
 
     # Define NVM counters
     c_boot = multiByte(num_bytes=2, lowest_register=1)
