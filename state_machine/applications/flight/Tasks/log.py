@@ -33,8 +33,9 @@ class LogTask(Task):
         Log a message to a log file.
         """
         t = cubesat.rtc.datetime
+        boot = cubesat.c_boot
         hour_stamp = f'{t.tm_year}.{t.tm_mon}.{t.tm_mday}.{t.tm_hour}'
-        new_log_fd_str = f'/sd/logs/debug/{hour_stamp}.txt'
+        new_log_fd_str = f'/sd/logs/debug/{boot}/{hour_stamp}.txt'
         global log_fd
         global log_fd_str
         if new_log_fd_str != log_fd_str:
@@ -45,6 +46,7 @@ class LogTask(Task):
             except Exception:
                 logs.try_mkdir('/sd/logs/')
                 logs.try_mkdir('/sd/logs/debug/')
+                logs.try_mkdir(f'/sd/logs/debug/{boot}/')
                 log_fd = open(new_log_fd_str, 'a')
             log_fd_str = new_log_fd_str
 
