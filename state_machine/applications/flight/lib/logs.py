@@ -42,12 +42,10 @@ def beacon_packet():
                        rssi, fei)
 
 
-def human_time_stamp(t):
+def human_time_stamp():
     """Returns a human readable time stamp in the format: 'boot_year.month.day_hour:min'
-    Gets the time from the RTC.
-
-    :param t: The time to format
-    :type t: time.struct_time"""
+    Gets the time from the RTC."""
+    t = cubesat.rtc.datetime
     boot = cubesat.c_boot
     return f'{boot}_{t.tm_year}.{t.tm_mon}.{t.tm_mday}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}'
 
