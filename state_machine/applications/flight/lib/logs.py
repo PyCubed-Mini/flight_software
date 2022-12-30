@@ -13,7 +13,8 @@ from state_machine import state_machine
 beacon_format = 3 * 'B' + 'H' + 'f' * 11
 
 def beacon_packet():
-    """Creates a beacon packet containing the: state index byte, f_contact and f_burn flags,
+    """Creates a beacon packet containing the: state index byte,
+    f_datetime_valid, f_contact and f_burn flags,
     state_error_count, boot count, battery voltage,
     CPU temperature, IMU temperature, gyro reading, mag reading,
     radio signal strength (RSSI), radio frequency error (FEI).
@@ -21,7 +22,9 @@ def beacon_packet():
     This data is packed into a c struct using `struct.pack`.
     """
     state_byte = state_machine.states.index(state_machine.state)
-    flags = ((cubesat.f_contact << 1) | (cubesat.f_burn)) & 0xFF
+    flags = ((cubesat.f_datetime_valid << 2) |
+             (cubesat.f_contact << 1) |
+             (cubesat.f_burn)) & 0xFF
     software_error = cubesat.c_software_error
     boot_count = cubesat.c_boot
     vbatt = cubesat.battery_voltage
@@ -67,6 +70,7 @@ def unpack_beacon(bytes):
     mag = array([mag0, mag1, mag2])
 
     return {"state_index": state_byte,
+            "datetime_valid_flag": bool(flags & (0b1 << 2)),
             "contact_flag": bool(flags & (0b1 << 1)),
             "burn_flag": bool(flags & (0b1 << 0)),
             "software_error_count": software_error,
