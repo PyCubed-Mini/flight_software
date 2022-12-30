@@ -176,7 +176,7 @@ def get_rtc_utime(task):
 def set_rtc(task, args):
     """Set the RTC to the passed time"""
     ymdhms = _unpack(args)  # year, month, day, hour, minute, second
-    cubesat.rtc.datetime = time.struct_time(ymdhms + [-1, -1, -1])
+    cubesat.rtc.datetime = time.struct_time(ymdhms + [0, -1, -1])
     cubesat.f_datetime_valid = True
 
 def set_rtc_utime(task, args):

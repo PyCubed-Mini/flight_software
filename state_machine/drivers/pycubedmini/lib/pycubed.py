@@ -352,7 +352,7 @@ class _Satellite:
             rtc = PCF8523(self.i2c(hw_config.RTC_I2C))
             rtc.high_capacitance = False
             if rtc.lost_power:
-                restore_time = time.struct_time((2000, 0, 0, 0, 0, 0, -1, -1, -1))
+                restore_time = time.struct_time((2000, 0, 0, 0, 0, 0, 0, -1, -1))
                 print(f"RTC lost power, RTC time = {rtc.datetime}, restoring to {restore_time}")
                 rtc.datetime = restore_time
                 self.f_datetime_valid = False
