@@ -56,6 +56,7 @@ class _Satellite:
     # Define NVM flags
     f_contact = bitFlag(register=0, bit=1)
     f_burn = bitFlag(register=0, bit=2)
+    f_datetime_valid = bitFlag(register=0, bit=3)
 
     # Define NVM counters
     c_boot = multiByte(num_bytes=2, lowest_register=1)
@@ -362,6 +363,7 @@ class _Satellite:
             if rtc.lost_power:
                 print(f"RTC lost power, RTC time = {rtc.datetime}, restoring to {self._nvm_datetime}")
                 rtc.datetime = self._nvm_datetime
+                self.f_datetime_valid = False
             return rtc
         except Exception as e:
             print(f'[ERROR][Initializing RTC] {e}, ' +
