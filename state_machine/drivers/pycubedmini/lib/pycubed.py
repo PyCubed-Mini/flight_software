@@ -64,13 +64,13 @@ class _Satellite:
     c_uplink = multiByte(num_bytes=4, lowest_register=8)
 
     # NVM for date/time retention
-    c_tm_year = multiByte(num_bytes=2, lowest_register=13)
-    c_tm_mon = multiByte(num_bytes=1, lowest_register=15)
-    c_tm_mday = multiByte(num_bytes=1, lowest_register=16)
-    c_tm_hour = multiByte(num_bytes=1, lowest_register=17)
-    c_tm_min = multiByte(num_bytes=1, lowest_register=18)
-    c_tm_sec = multiByte(num_bytes=1, lowest_register=19)
-    c_tm_wday = multiByte(num_bytes=1, lowest_register=20)
+    c_tm_year = multiByte(num_bytes=1, lowest_register=13)
+    c_tm_mon = multiByte(num_bytes=1, lowest_register=14)
+    c_tm_mday = multiByte(num_bytes=1, lowest_register=15)
+    c_tm_hour = multiByte(num_bytes=1, lowest_register=16)
+    c_tm_min = multiByte(num_bytes=1, lowest_register=17)
+    c_tm_sec = multiByte(num_bytes=1, lowest_register=18)
+    c_tm_wday = multiByte(num_bytes=1, lowest_register=19)
 
     instance = None
     data_cache = {}
@@ -495,7 +495,7 @@ class _Satellite:
     @property
     def _nvm_datetime(self):
         return time.struct_time((
-            self.c_tm_year,
+            self.c_tm_year + 2000,
             self.c_tm_mon,
             self.c_tm_mday,
             self.c_tm_hour,
@@ -508,7 +508,8 @@ class _Satellite:
 
     @_nvm_datetime.setter
     def _nvm_datetime(self, dt):
-        self.c_tm_year = dt.tm_year
+        assert dt.tm_year >= 2000, "Year must be >= 2000 for compatibility with RTC library"
+        self.c_tm_year = dt.tm_year - 2000
         self.c_tm_mon = dt.tm_mon
         self.c_tm_mday = dt.tm_mday
         self.c_tm_hour = dt.tm_hour
