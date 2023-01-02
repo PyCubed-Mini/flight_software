@@ -34,8 +34,8 @@ class LogTask(Task):
         """
         t = cubesat.rtc.datetime
         boot = cubesat.c_boot
-        hour_stamp = f'{t.tm_year}.{t.tm_mon}.{t.tm_mday}.{t.tm_hour}'
-        new_log_fd_str = f'/sd/logs/debug/{boot}/{hour_stamp}.txt'
+        hour_stamp = f'{t.tm_year:04}.{t.tm_mon:02}.{t.tm_mday:02}.{t.tm_hour:02}'
+        new_log_fd_str = f'/sd/logs/debug/{boot:05}/{hour_stamp}.txt'
         global log_fd
         global log_fd_str
         if new_log_fd_str != log_fd_str:

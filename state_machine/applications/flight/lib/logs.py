@@ -47,7 +47,7 @@ def human_time_stamp():
     Gets the time from the RTC."""
     t = cubesat.rtc.datetime
     boot = cubesat.c_boot
-    return f'{boot}_{t.tm_year}.{t.tm_mon}.{t.tm_mday}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}'
+    return f'{boot:05}_{t.tm_year:04}.{t.tm_mon:02}.{t.tm_mday:02}_{t.tm_hour:02}:{t.tm_min:02}:{t.tm_sec:02}'
 
 def try_mkdir(path):
     """Tries to make a directory at the given path.
