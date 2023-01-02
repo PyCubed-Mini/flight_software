@@ -43,7 +43,7 @@ def beacon_packet():
 
 
 def human_time_stamp():
-    """Returns a human readable time stamp in the format: 'boot_year.month.day_hour:min'
+    """Returns a human readable time stamp in the format: 'boot_year.month.day_hour:min:sec'
     Gets the time from the RTC."""
     t = cubesat.rtc.datetime
     boot = cubesat.c_boot
