@@ -1,6 +1,7 @@
 from lib.template_task import Task
 from pycubed import cubesat
 import logs
+import files
 import traceback
 import time
 
@@ -37,9 +38,10 @@ class LogTask(Task):
             t = cubesat.rtc.datetime
         else:
             t = time.localtime()
-        boot = cubesat.c_boot
+        boot_str = f'{cubesat.c_boot:05}'
         hour_stamp = f'{t.tm_year:04}.{t.tm_mon:02}.{t.tm_mday:02}.{t.tm_hour:02}'
-        new_log_fd_str = f'/sd/logs/debug/{boot:05}/{hour_stamp}.txt'
+        new_log_fd_path_str = f'/sd/logs/debug/{boot_str}'
+        new_log_fd_str = f'{new_log_fd_path_str}/{hour_stamp}.txt'
         global log_fd
         global log_fd_str
         if new_log_fd_str != log_fd_str:
@@ -48,9 +50,7 @@ class LogTask(Task):
             try:
                 log_fd = open(new_log_fd_str, 'a')
             except Exception:
-                logs.try_mkdir('/sd/logs/')
-                logs.try_mkdir('/sd/logs/debug/')
-                logs.try_mkdir(f'/sd/logs/debug/{boot}/')
+                files.mkdirp(new_log_fd_path_str)
                 log_fd = open(new_log_fd_str, 'a')
             log_fd_str = new_log_fd_str
 
