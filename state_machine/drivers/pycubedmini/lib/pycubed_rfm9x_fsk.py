@@ -924,6 +924,8 @@ class RFM9x:
         packet = bytearray(_MAX_FIFO_LENGTH)
         packet_length = self._read_until_flag(_RH_RF95_REG_00_FIFO, packet, self.fifo_empty)
 
+        if debug:
+            print(f"RFM9X: Received {tohexstring(packet)}")
         # Reject if the received packet is too small to include the 1 byte length, the
         # 4 byte RadioHead header and at least one byte of data
         if packet_length < 6:
