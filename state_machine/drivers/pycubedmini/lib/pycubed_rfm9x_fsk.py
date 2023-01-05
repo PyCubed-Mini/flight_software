@@ -729,7 +729,8 @@ class RFM9x:
         destination=None,
         node=None,
         identifier=None,
-        flags=None
+        flags=None,
+        debug=True
     ):
         """Send a string of data using the transmitter.
         You can only send 57 bytes at a time
@@ -780,6 +781,8 @@ class RFM9x:
             checksum = bsd_checksum(payload)
             payload = payload + checksum
 
+        if debug:
+            print(f"RFM9X Sending: {tohexstring(payload)}")
         # Write payload.
         self._write_from(_RH_RF95_REG_00_FIFO, payload)
 
@@ -825,7 +828,7 @@ class RFM9x:
         self.sequence_number = (self.sequence_number + 1) & 0xFF
         while not got_ack and retries_remaining:
             self.identifier = self.sequence_number
-            await self.send(data, keep_listening=True)
+            await self.send(data, keep_listening=True, debug=debug)
             # Don't look for ACK from Broadcast message
             if self.destination == _RH_BROADCAST_ADDRESS:
                 got_ack = True
@@ -925,7 +928,7 @@ class RFM9x:
         # 4 byte RadioHead header and at least one byte of data
         if packet_length < 6:
             if debug:
-                print(f"RFM9X: Incomplete message (packet_length = {packet_length} < 6, packet = {str(packet)})")
+                print(f"RFM9X: Incomplete message (packet_length = {packet_length} < 6, \n\tpacket = {tohexstring(packet)})")
             return None
 
         # Reject if the length recorded in the packet doesn't match the amount of data we got
@@ -935,7 +938,7 @@ class RFM9x:
                 print(
                     f"RFM9X: Received packet length ({packet_length}) " +
                     f"does not match transmitted packet length ({internal_packet_length}), " +
-                    f"packet = {str(packet)}")
+                    f"\n\tpacket = {tohexstring(packet)}")
             return None
 
         packet = packet[:packet_length]
@@ -944,8 +947,9 @@ class RFM9x:
             if not bsd_checksum(packet[:-2]) == packet[-2:]:
                 if debug:
                     print(
-                        f"RFM9X: Checksum failed, packet = {str(packet)}, bsd_checksum(packet[:-2])" +
-                        f" = {bsd_checksum(packet[:-2])}, packet[-2:] = {packet[-2:]}")
+                        f"RFM9X: Checksum failed, bsd_checksum(packet[:-2]) = {tohexstring(bsd_checksum(packet[:-2]))}, " +
+                        f"packet[-2:] = {tohexstring(packet[-2:])}" +
+                        f"\n\tpacket = {tohexstring(packet)}")
                 self.checksum_error_count += 1
                 return None
             else:
@@ -959,8 +963,8 @@ class RFM9x:
             if debug:
                 print(
                     "RFM9X: Incorrect Address " +
-                    f"(packet address = {packet[1]} != my address = {self.node}), " +
-                    f"packet = {str(packet)}")
+                    f"(packet address = {packet[1]:02x} != my address = {self.node:02x}), " +
+                    f"\n\tpacket = {tohexstring(packet)}")
             return None
 
         # send ACK unless this was an ACK or a broadcast
@@ -983,7 +987,7 @@ class RFM9x:
             if (self.seen_ids[packet[2]] == packet[3]) and (
                     packet[4] & _RH_FLAGS_RETRY):
                 if debug:
-                    print(f"RFM9X: dropping retried packet, packet = {str(packet)}")
+                    print(f"RFM9X: dropping retried packet, \n\tpacket = {tohexstring(packet)}")
                 return None
             else:  # save the packet identifier for this source
                 self.seen_ids[packet[2]] = packet[3]
@@ -1002,3 +1006,10 @@ def bsd_checksum(bytedata):
         checksum += b
         checksum &= 0xffff
     return bytes([checksum >> 8, checksum & 0xff])
+
+
+def tohexstring(b):
+    s = ""
+    for bi in b:
+        s += f"{bi:02x} "
+    return s
