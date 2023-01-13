@@ -7,8 +7,10 @@ from Tasks.log import LogTask as Task
 import radio_utils.transmission_queue as tq
 import radio_utils.commands as cdh
 import radio_utils.headers as headers
+import radio_utils.message as message
 from pycubed import cubesat
 import time
+Message = message.Message
 
 ANTENNA_ATTACHED = False
 
@@ -150,10 +152,14 @@ class task(Task):
                     cmd_fn(self)
             except Exception as e:
                 self.debug(f'something went wrong: {e}')
-                await cubesat.radio.send(str(e).encode())
+                msg = Message(0, f'{cmd} Error: {str(e).encode()}')
+                packet, _ = msg.packet()
+                await cubesat.radio.send(packet)
         else:
             self.debug('invalid command!')
-            await cubesat.radio.send(b'invalid cmd' + cmd)
+            msg = Message(0, f'Invalid command: {cmd}')
+            packet, _ = msg.packet()
+            await cubesat.radio.send(packet)
 
     def handle_disk_buffered_message(self, header, response):
         """Handler function for the disk_buffered_message message type"""

@@ -29,19 +29,20 @@ class deployment_manager(Task):
         and switching to normal operations if contact is established.
         """
         if (cubesat.f_contact):
-            self.debug('Contact with ground station has been already established, switching to Normal mode')
+            self.debug('Contact with ground station has been already established, switching to Normal mode', log=True)
             state_machine.switch_to('Normal')
         elif self.should_burn():
             self.last_burn = time.time()
+            self.debug(f'Starting burn, vbatt = {cubesat.battery_voltage}', log=True)
             if await cubesat.burn(duration=10, dutycycle=0.2):
                 cubesat.f_burn = True
-                self.debug('Successfully burned')
+                self.debug('Successfully burned', log=True)
             else:
-                self.debug('Unsuccessful burn')
+                self.debug('Unsuccessful burn', log=True)
         else:
             vbatt = cubesat.battery_voltage
             if vbatt < cubesat.LOW_VOLTAGE:
-                self.debug(f'Voltage too low ({vbatt:.2f}V < {cubesat.LOW_VOLTAGE:.2f}V) switch to safe mode')
+                self.debug(f'Voltage too low ({vbatt:.2f}V < {cubesat.LOW_VOLTAGE:.2f}V) switch to safe mode', log=True)
                 state_machine.switch_to('Safe')
 
     def should_burn(self):

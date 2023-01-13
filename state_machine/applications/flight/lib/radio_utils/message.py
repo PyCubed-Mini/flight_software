@@ -1,6 +1,9 @@
+from radio_utils import PACKET_DATA_LEN
+
 class Message:
-    """The most basic message type. Supports ascii messages no longer than 251 bytes.
+    """The most basic message type.
     Other message types should inherit from this class.
+    Truncates the message to fit within the payload limit.
 
     :param priority: The priority of the message (higher is better)
     :type priority: int
@@ -19,9 +22,10 @@ class Message:
 
     def packet(self):
         """Returns the byte representation of the message, and if it should be sent with or without ack."""
-        pkt = bytearray(len(self.str) + 1)
+        str = self.str[:PACKET_DATA_LEN]
+        pkt = bytearray(len(str) + 1)
         pkt[0] = self.header
-        pkt[1:] = self.str
+        pkt[1:] = str
         return pkt, self.with_ack
 
     def done(self):

@@ -5,9 +5,6 @@ import files
 import traceback
 import time
 
-log_fd = None
-log_fd_str = None
-
 class LogTask(Task):
 
     def debug(self, msg, level=1, log=False):
@@ -40,23 +37,18 @@ class LogTask(Task):
             t = time.localtime()
         boot_str = f'{cubesat.c_boot:05}'
         hour_stamp = f'{t.tm_year:04}.{t.tm_mon:02}.{t.tm_mday:02}.{t.tm_hour:02}'
-        new_log_fd_path_str = f'/sd/logs/debug/{boot_str}'
-        new_log_fd_str = f'{new_log_fd_path_str}/{hour_stamp}.txt'
-        global log_fd
-        global log_fd_str
-        if new_log_fd_str != log_fd_str:
-            if log_fd is not None:
-                log_fd.close()
-            try:
-                log_fd = open(new_log_fd_str, 'a')
-            except Exception:
-                files.mkdirp(new_log_fd_path_str)
-                log_fd = open(new_log_fd_str, 'a')
-            log_fd_str = new_log_fd_str
+        log_fd_path_str = f'/sd/logs/debug/{boot_str}'
+        log_fd_str = f'{log_fd_path_str}/{hour_stamp}.txt'
+        try:
+            log_fd = open(log_fd_str, 'a')
+        except Exception:
+            files.mkdirp(log_fd_path_str)
+            log_fd = open(log_fd_str, 'a')
 
         log_fd.write(f'[{logs.human_time_stamp(t)}]\n')
         log_fd.write(msg)
         log_fd.write('\n')
+        log_fd.close()
 
     async def handle_error(self, error):
         """

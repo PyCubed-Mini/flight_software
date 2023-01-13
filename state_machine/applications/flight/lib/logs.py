@@ -70,12 +70,12 @@ def system_packet():
 
     includes the: lux values from each sun sensor
     """
-    lux_xp = cubesat.sun_xp.lux if cubesat.sun_xp else nan
-    lux_yp = cubesat.sun_yp.lux if cubesat.sun_yp else nan
-    lux_zp = cubesat.sun_zp.lux if cubesat.sun_zp else nan
-    lux_xn = cubesat.sun_xn.lux if cubesat.sun_xn else nan
-    lux_yn = cubesat.sun_yn.lux if cubesat.sun_yn else nan
-    lux_zn = cubesat.sun_zn.lux if cubesat.sun_zn else nan
+    lux_xp = cubesat.sun_xp.lux if cubesat.sun_xp and cubesat.sun_xp.lux is not None else nan
+    lux_yp = cubesat.sun_yp.lux if cubesat.sun_yp and cubesat.sun_yp.lux is not None else nan
+    lux_zp = cubesat.sun_zp.lux if cubesat.sun_zp and cubesat.sun_zp.lux is not None else nan
+    lux_xn = cubesat.sun_xn.lux if cubesat.sun_xn and cubesat.sun_xn.lux is not None else nan
+    lux_yn = cubesat.sun_yn.lux if cubesat.sun_yn and cubesat.sun_yn.lux is not None else nan
+    lux_zn = cubesat.sun_zn.lux if cubesat.sun_zn and cubesat.sun_zn.lux is not None else nan
     return struct.pack(system_format,
                        lux_xp, lux_yp, lux_zp,
                        lux_xn, lux_yn, lux_zn)

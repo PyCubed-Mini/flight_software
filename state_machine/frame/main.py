@@ -20,8 +20,6 @@ except Exception as e:
     try:
         # increment our NVM error counter
         cubesat.c_state_err += 1
-        # try to log everything
-        cubesat.log(f'{formated_exception},{cubesat.c_state_err},{cubesat.c_boot}')
     except Exception:
         pass
 
