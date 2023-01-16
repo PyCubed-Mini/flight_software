@@ -421,7 +421,7 @@ class _Satellite:
         if supervisor.runtime.usb_connected:
             vref = 3.3
         else:
-            vref = 3.0
+            vref = 3.05
 
         # initialize vbat
         vbat = 0
