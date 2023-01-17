@@ -4,6 +4,7 @@ from Tasks.log import LogTask as Task
 from pycubed import cubesat
 from state_machine import state_machine
 
+ENABLE_BLINK = True
 
 class task(Task):
     name = 'blink'
@@ -16,11 +17,13 @@ class task(Task):
 
     async def main_task(self):
         """
-        Switches the LED from purple to off.
+        Blinks the LED a color corresponding to the state machine state
         """
         if not cubesat.neopixel:
             self.debug('No neopixel attached, skipping blink task')
             return
+        if not ENABLE_BLINK:
+            return  # don't do anything if blink is disabled
         if self.rgb_on:
             cubesat.RGB = (0, 0, 0)
             self.rgb_on = False
