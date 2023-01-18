@@ -4,7 +4,7 @@ from Tasks.log import LogTask as Task
 from pycubed import cubesat
 from state_machine import state_machine
 
-ENABLE_BLINK = True
+MAX_BLINKS = None  # set to integer value to limit number of blinks per boot
 
 class task(Task):
     name = 'blink'
@@ -14,6 +14,7 @@ class task(Task):
 
     state_colors = [(0, 50, 50), (50, 0, 50), (0, 0, 10)]
     unknown_state_color = (30, 30, 30)
+    blink_count = 0
 
     async def main_task(self):
         """
@@ -22,9 +23,7 @@ class task(Task):
         if not cubesat.neopixel:
             self.debug('No neopixel attached, skipping blink task')
             return
-        if not ENABLE_BLINK:
-            return  # don't do anything if blink is disabled
-        if self.rgb_on:
+        if self.rgb_on or (MAX_BLINKS is not None and self.blink_count > MAX_BLINKS):
             cubesat.RGB = (0, 0, 0)
             self.rgb_on = False
         else:
@@ -34,3 +33,4 @@ class task(Task):
             else:
                 cubesat.RGB = self.unknown_state_color
             self.rgb_on = True
+            self.blink_count += 1
