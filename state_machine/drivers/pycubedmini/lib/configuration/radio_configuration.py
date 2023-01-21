@@ -5,7 +5,7 @@ Defines the default settings used to configure the RFM9x satellite
 CHECKSUM = True
 TX_POWER = 23  # dB
 BITRATE = 1200  # bits per second
-FREQUENCY = 433.0  # MHz
+FREQUENCY = 401.82  # MHz
 FREQUENCY_DEVIATION = 10000  # Hz
 RX_BANDWIDTH = 25.0  # KHz
 PREAMBLE_LENGTH = 16  # bytes
