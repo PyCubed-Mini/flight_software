@@ -16,7 +16,7 @@ INITIAL_BURN_DELAY = 5 * 60
 BURN_INTERVAL = 24 * 60 * 60
 
 class deployment_manager(Task):
-    name = 'depoloyment_manager'
+    name = 'deployment_manager'
     color = 'blue'
 
     rgb_on = False
