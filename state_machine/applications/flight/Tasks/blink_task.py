@@ -34,3 +34,5 @@ class task(Task):
                 cubesat.RGB = self.unknown_state_color
             self.rgb_on = True
             self.blink_count += 1
+            if self.blink_count < 0:
+                self.blink_count = 0

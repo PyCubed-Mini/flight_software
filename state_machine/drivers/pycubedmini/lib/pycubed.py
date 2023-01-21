@@ -90,6 +90,7 @@ class _Satellite:
         self.BOOTTIME = int(time.monotonic())  # get monotonic time at initialization
         self.micro = microcontroller
         self.c_boot += 1  # increment boot count (can only do this after self.micro is set up)
+        self.micro.on_next_reset(self.micro.RunMode.NORMAL)  # make sure it always resets in normal mode
         self._vbatt = analogio.AnalogIn(board.BATTERY)  # Battery voltage
 
         # To force initialization of hardware
