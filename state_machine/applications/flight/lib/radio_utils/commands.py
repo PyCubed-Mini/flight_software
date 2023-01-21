@@ -125,7 +125,7 @@ def copy_file(task, args):
     """
     try:
         args = json.loads(args)
-        with open(args[0], 'rb') as source, open(args[1], 'wb') as dest:
+        with open(args[0], 'rb') as source, open(args[1], 'cb') as dest:
             _cp(source, dest)
         task.debug('Sucess copying file')
         tq.push(Message(9, b'Success copying file'))
@@ -147,15 +147,12 @@ def delete_file(task, file):
         task.debug(f'Error deleting file: {e}')
         _downlink(f'Error deleting file: {e}')
 
-async def reload(task):
+def reload(task):
     """Reloads the flight software
 
     :param task: The task that called this function
     """
     task.debug('Reloading')
-    msg = bytearray([headers.DEFAULT])
-    msg.append(b'reset')
-    await cubesat.radio.send(data=msg)
     supervisor.reload()
 
 def request_beacon(task):
@@ -261,7 +258,7 @@ commands = {
     MOVE_FILE: {"function": move_file, "name": "MOVE_FILE", "will_respond": True, "has_args": True},
     COPY_FILE: {"function": copy_file, "name": "COPY_FILE", "will_respond": True, "has_args": True},
     DELETE_FILE: {"function": delete_file, "name": "DELETE_FILE", "will_respond": True, "has_args": True},
-    RELOAD: {"function": reload, "name": "RELOAD", "will_respond": True, "has_args": False},
+    RELOAD: {"function": reload, "name": "RELOAD", "will_respond": False, "has_args": False},
     REQUEST_BEACON: {"function": request_beacon, "name": "REQUEST_BEACON", "will_respond": True, "has_args": False},
     GET_RTC: {"function": get_rtc, "name": "GET_RTC", "will_respond": True, "has_args": False},
     GET_RTC_UTIME: {"function": get_rtc_utime, "name": "GET_RTC_UTIME", "will_respond": True, "has_args": False},
