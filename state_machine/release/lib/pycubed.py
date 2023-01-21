@@ -23,6 +23,7 @@ import adafruit_tsl2561
 import time
 import tasko
 from ulab.numpy import array, dot
+import supervisor
 
 class device:
     """
@@ -89,6 +90,7 @@ class _Satellite:
         self.BOOTTIME = int(time.monotonic())  # get monotonic time at initialization
         self.micro = microcontroller
         self.c_boot += 1  # increment boot count (can only do this after self.micro is set up)
+        self.micro.on_next_reset(self.micro.RunMode.NORMAL)  # make sure it always resets in normal mode
         self._vbatt = analogio.AnalogIn(board.BATTERY)  # Battery voltage
 
         # To force initialization of hardware
@@ -410,13 +412,25 @@ class _Satellite:
         times and then later average it to get as close as possible
         to a reliable battery voltage value
         """
+
+        # Handle an issue with the hardware where the 3V3 bus is
+        # 3.0 volts when the solar harvester chips regulate the power,
+        # and is 3.3 volts when the USB is powering the board.
+        # This will not use the right reference voltage when a data-only
+        # USB cable is connected, but it should work for regular
+        # USB cables and when nothing is connected to the satellite.
+        if supervisor.runtime.usb_connected:
+            vref = 3.3
+        else:
+            vref = 3.05
+
         # initialize vbat
         vbat = 0
 
         # get the battery value 50 times
         for _ in range(50):
             # 65536 = 2^16, number of increments we can have to voltage
-            vbat += self._vbatt.value * 3.3 / 65536
+            vbat += self._vbatt.value * vref / 65536
 
         # vbat / 50 = average of all battery voltage values read
         # 100k/100k voltage divider

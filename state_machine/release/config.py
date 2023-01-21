@@ -47,7 +47,12 @@ config = {
                 "Interval": 15.0,
                 "Priority": 1,
                 "ScheduleLater": False
-            }
+            },
+            "Blink": {
+                "Interval": 1,
+                "Priority": 255,
+                "ScheduleLater": False
+            },
         },
         "StepsTo": [
             "Normal",
@@ -72,6 +77,11 @@ config = {
             "DeploymentManager": {
                 "Interval": 5.0,
                 "Priority": 1,
+                "ScheduleLater": False
+            },
+            "Blink": {
+                "Interval": 0.2,
+                "Priority": 255,
                 "ScheduleLater": False
             },
         },
