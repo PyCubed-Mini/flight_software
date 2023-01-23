@@ -79,8 +79,7 @@ class task(Task):
             response = await cubesat.radio.receive(
                 keep_listening=True,
                 with_ack=ANTENNA_ATTACHED,
-                with_header=False,
-                timeout=10)
+                with_header=False)
             if response is not None:
                 self.on_uplink()
                 header = response[0]
