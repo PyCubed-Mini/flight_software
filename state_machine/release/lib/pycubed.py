@@ -229,6 +229,7 @@ class _Satellite:
             radio.preamble_length = rf_config.PREAMBLE_LENGTH
             radio.ack_delay = rf_config.ACK_DELAY
             radio.ack_wait = rf_config.ACK_WAIT
+            radio.ack_retries = rf_config.ACK_RETRIES
             radio.receive_timeout = rf_config.RECEIVE_TIMEOUT
             radio.node = rf_config.SATELLITE_ID
             radio.destination = rf_config.GROUNDSTATION_ID
