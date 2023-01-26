@@ -4,7 +4,7 @@ from Tasks.log import LogTask as Task
 from pycubed import cubesat
 from state_machine import state_machine
 
-MAX_BLINKS = None  # set to integer value to limit number of blinks per boot
+MAX_BLINKS = 5  # set to integer value to limit number of blinks per boot
 
 class task(Task):
     name = 'blink'

@@ -12,7 +12,7 @@ from pycubed import cubesat
 import time
 Message = message.Message
 
-ANTENNA_ATTACHED = False
+ANTENNA_ATTACHED = True
 
 TX_SKIP = 5  # skip every TX_SKIP transmissions
 tx_ready_counter = 0
