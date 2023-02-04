@@ -393,16 +393,18 @@ class _Satellite:
         """ return the temperature reading from the CPU in celsius """
         return self.micro.cpu.temperature if self.micro else None
 
-    def coildriver_vout(self, driver_index, projected_voltage):
-        """ Set a given voltage for a given coil driver """
-        if driver_index == "X" or driver_index == "U7":
-            self.drv_x.throttle_volts = projected_voltage
-        elif driver_index == "Y" or driver_index == "U8":
-            self.drv_y.throttle_volts = projected_voltage
-        elif driver_index == "Z" or driver_index == "U9":
-            self.drv_z.throttle_volts = projected_voltage
-        else:
-            print(driver_index, "is not a defined coil driver")
+    def coildriver_vout(self, normalized_voltage):
+        """ Set a given voltage for a given coil driver
+        :param normalized_voltage: a 3-member list of ['X', 'Y', 'Z'] coil settings.
+        Each element should be a value between -1.0 and 1.0, or None.
+        None sets the driver to 'coast', while 0.0 sets the driver to 'brake'.
+        :type normalized_voltage: list of Floats
+        """
+        # TODO Correct voltages for battery voltage level
+
+        self.drv_x.throttle = normalized_voltage[0]
+        self.drv_y.throttle = normalized_voltage[1]
+        self.drv_z.throttle = normalized_voltage[2]
 
     @property
     def battery_voltage(self):
