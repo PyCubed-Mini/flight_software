@@ -6,6 +6,7 @@ import tests.imu_test
 import tests.sun_sensor_test
 import tests.coil_test
 import tests.burnwire_test
+import tests.mag_sweep_test
 from print_utils import bold, normal, red, green
 try:
     import supervisor
@@ -32,6 +33,7 @@ all_tests = [
     ("IMU Test", "imu", tests.imu_test, True),
     ("Sun Sensor Test", "sun", tests.sun_sensor_test, True),
     ("Coil Driver Test", "coil", tests.coil_test, True),
+    ("Mangetorquer Sweep", "mag", tests.mag_sweep_test, False),
     ("Burnwire Test", "burn", tests.burnwire_test, False),
     ("I2C_Scan", "i2c", tests.i2c_scan, False),
     ("Reset and Test NVM", "nvm", tests.nvm_access_test, True),
