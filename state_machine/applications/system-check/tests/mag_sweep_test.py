@@ -1,19 +1,28 @@
 import time
+import files
 from lib.pycubed import cubesat
 try:
     import ulab.numpy as numpy
 except ImportError:
     import numpy
 
-def sweep_mag(wave_generator, coils, period, runtime, dt, amplitude_range=(-1.0, 1.0), print_data=True):
-    assert amplitude_range[0] >= -1.0
-    assert amplitude_range[0] <= 1.0
-    assert amplitude_range[1] >= -1.0
-    assert amplitude_range[1] <= 1.0
-    assert amplitude_range[0] < amplitude_range[1]
+def human_time_stamp(t):
+    """Returns a human readable time stamp in the format: 'boot_year.month.day_hour:min'
+    Gets the time from the RTC.
 
+    :param t: The time to format
+    :type t: time.struct_time"""
+    boot = cubesat.c_boot
+    return f'{boot:05}_{t.tm_year:04}.{t.tm_mon:02}.{t.tm_mday:02}_{t.tm_hour:02}.{t.tm_min:02}.{t.tm_sec:02}'
+
+def sweep_mag(wave_generator, coils, period, runtime, dt, amplitude=1.0, offset=0.0, print_data=True, logfile=""):
     vout = [0.0, 0.0, 0.0]
     cubesat.coildriver_vout(vout)
+    if not logfile == "":
+        logfile += human_time_stamp(cubesat.rtc.datetime)
+        print(f"Logging to {logfile}")
+        files.mkdirp(logfile[0:logfile.rfind("/")])  # make directories up to file name
+        log_fd = open(logfile, 'a')
     if print_data:
         print(f"Time,\t Coil,\t Level,\t Mag X,\t Mag Y,\t Mag Z")
 
@@ -22,17 +31,24 @@ def sweep_mag(wave_generator, coils, period, runtime, dt, amplitude_range=(-1.0,
     for coil_index in coils:
         for i in range(n_steps):
             t = i * dt
-            half_amplitude = (amplitude_range[1] - amplitude_range[0]) / 2
-            level = half_amplitude * wave_generator(t * period) + amplitude_range[0] + half_amplitude
+            level = amplitude * wave_generator(t * period) + offset
             vout[coil_index] = level
             cubesat.coildriver_vout(vout)
             mag_reading = cubesat.magnetic
             if print_data:
                 print(f"{t},\t {coil_index},\t {level},\t {mag_reading[0]},\t {mag_reading[1]},\t {mag_reading[2]}")
-            time.sleep(dt)
+            if not logfile == "":
+                tstart = time.monotonic()
+                while time.monotonic() - tstart < dt:
+                    log_fd.write(f"{time.monotonic()},\t {coil_index},\t {level},\t {mag_reading[0]},\t {mag_reading[1]},\t {mag_reading[2]}\n")
+            else:
+                time.sleep(dt)
 
         vout = [0.0, 0.0, 0.0]
         cubesat.coildriver_vout(vout)
+
+    if not logfile == "":
+        log_fd.close()
 
 def sin_generator(t):
     return numpy.sin(t * 2 * numpy.pi)
@@ -40,15 +56,26 @@ def sin_generator(t):
 def ramp_generator(t):
     return 2.0 * (t % 1.0) - 1.0
 
+def pulse_generator(t, duty=0.1):
+    if (t % 1.0) <= duty:
+        return 1.0
+    else:
+        return 0.0
+
 async def run(result_dict):
     """
     """
-    print("Running sine sweep\n")
-    sweep_mag(sin_generator, [0, 1, 2], 1, 10, 0.01)
-    print("\nSine sweep complete")
+    # print("Running sine sweep\n")
+    # sweep_mag(sin_generator, [0, 1, 2], 1, 10, 0.01)
+    # print("\nSine sweep complete")
 
-    print("Running ramp sweep\n")
-    sweep_mag(ramp_generator, [0, 1, 2], 1, 10, 0.01)
-    print("\nRamp sweep complete")
+    # print("Running ramp sweep\n")
+    # sweep_mag(ramp_generator, [0, 1, 2], 1, 10, 0.01)
+    # print("\nRamp sweep complete")
+
+    print("Running pulse sweep\n")
+    sweep_mag(lambda t: pulse_generator(t, duty=0.1), [0, 1, 2], 1, 5.0, 0.01,
+              amplitude=1.0, offset=0.0, print_data=False, logfile="/sd/tests/mag_sweep/pulse_")
+    print("\nPulse sweep complete")
 
     result_dict["Mag_Sweep"] = ("Completed", True)
