@@ -19,10 +19,11 @@ def sweep_mag(wave_generator, coils, period, runtime, dt, amplitude=1.0, offset=
     vout = [0.0, 0.0, 0.0]
     cubesat.coildriver_vout(vout)
     if not logfile == "":
-        logfile += human_time_stamp(cubesat.rtc.datetime)
+        logfile += human_time_stamp(cubesat.rtc.datetime) + ".csv"
         print(f"Logging to {logfile}")
         files.mkdirp(logfile[0:logfile.rfind("/")])  # make directories up to file name
         log_fd = open(logfile, 'a')
+        log_fd.write(f"Time, Coil, Level, Mag X, Mag Y, Mag Z\n")
     if print_data:
         print(f"Time,\t Coil,\t Level,\t Mag X,\t Mag Y,\t Mag Z")
 
@@ -34,13 +35,14 @@ def sweep_mag(wave_generator, coils, period, runtime, dt, amplitude=1.0, offset=
             level = amplitude * wave_generator(t * period) + offset
             vout[coil_index] = level
             cubesat.coildriver_vout(vout)
-            mag_reading = cubesat.magnetic
             if print_data:
+                mag_reading = cubesat.magnetic
                 print(f"{t},\t {coil_index},\t {level},\t {mag_reading[0]},\t {mag_reading[1]},\t {mag_reading[2]}")
             if not logfile == "":
                 tstart = time.monotonic()
                 while time.monotonic() - tstart < dt:
-                    log_fd.write(f"{time.monotonic()},\t {coil_index},\t {level},\t {mag_reading[0]},\t {mag_reading[1]},\t {mag_reading[2]}\n")
+                    mag_reading = cubesat.magnetic
+                    log_fd.write(f"{time.monotonic()}, {coil_index}, {level}, {mag_reading[0]}, {mag_reading[1]}, {mag_reading[2]}\n")
             else:
                 time.sleep(dt)
 

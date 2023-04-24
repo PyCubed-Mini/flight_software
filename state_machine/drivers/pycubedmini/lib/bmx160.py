@@ -243,7 +243,7 @@ BMX160_ERROR               = const(-1)
 AccelSensitivity2Gravity_values = [2048, 4086, 8192, 16384]   # accelerometer sensitivity. See Section 1.2, Table 2
 GyroSensitivity2DegPerSec_values = [16.4, 32.8, 65.6, 131.2, 262.4]  # Section 1.2, Table 3
 
-g_TO_METERS_PER_SECOND_SQUARED = 1/9.80665 # in m/s^2
+g_TO_METERS_PER_SECOND_SQUARED = 1 / 9.80665  # in m/s^2
 
 AccelSensitivity2Gravity = const(16384)  # accelerometer sensitivity. See Section 1.2, Table 2
 GyroSensitivity2DegPerSec = 131.2        # gyroscope sensitivity. See Section 1.2, Table 3
@@ -282,18 +282,17 @@ class BMX160:
     # multiplicative constants
 
     # NOTE THESE FIRST TWO GET SET IN THE INIT SEQUENCE
-    ACC_SCALAR = 1/(AccelSensitivity2Gravity * g_TO_METERS_PER_SECOND_SQUARED) # 1 m/s^2 = 0.101971621 g
-    GYR_SCALAR = 1/GyroSensitivity2DegPerSec_values[4]
-    MAG_SCALAR = 1/16
+    ACC_SCALAR = 1 / (AccelSensitivity2Gravity * g_TO_METERS_PER_SECOND_SQUARED)  # 1 m/s^2 = 0.101971621 g
+    GYR_SCALAR = 1 / GyroSensitivity2DegPerSec_values[4]
+    MAG_SCALAR = 1 / 16
     TEMP_SCALAR = 0.5**9
 
-    _accel = Struct(BMX160_ACCEL_DATA_ADDR, '<hhh') # this is the default scalar, but it should get reset anyhow in init
+    _accel = Struct(BMX160_ACCEL_DATA_ADDR, '<hhh')  # this is the default scalar, but it should get reset anyhow in init
     _gyro  = Struct(BMX160_GYRO_DATA_ADDR, '<hhh')
     _mag   = Struct(BMX160_MAG_DATA_ADDR, '<hhh')
     _temp  = Struct(BMX160_TEMP_DATA_ADDR, '<h')
 
-
-    ### STATUS BITS
+    # STATUS BITS
     status         = ROBits(8, BMX160_STATUS_ADDR, 0)
     status_acc_pmu = ROBits(2, BMX160_PMU_STATUS_ADDR, 4)
     status_gyr_pmu = ROBits(2, BMX160_PMU_STATUS_ADDR, 2)
@@ -340,8 +339,7 @@ class BMX160:
     # _mag_bandwidth = NORMAL
     # _mag_powermode = NORMAL
     _mag_odr = 25    # Hz
-    _mag_range = 250 # deg/sec
-
+    _mag_range = 250  # deg/sec
 
     def __init__(self):
         # soft reset & reboot
@@ -372,7 +370,7 @@ class BMX160:
     def query_error(self):
         return format_binary(self._error_status)
 
-    ### ACTUAL API
+    # ACTUAL API
     @property
     def gyro(self):
         # deg/s
@@ -390,17 +388,18 @@ class BMX160:
 
     @property
     def temperature(self):
-        return self._temp[0]*self.TEMP_SCALAR+23
+        return self._temp[0] * self.TEMP_SCALAR + 23
+
     @property
     def temp(self):
-        return self._temp[0]*self.TEMP_SCALAR+23
+        return self._temp[0] * self.TEMP_SCALAR + 23
 
     @property
     def sensortime(self):
         tbuf = self.read_bytes(BMX160_SENSOR_TIME_ADDR, 3, self._smallbuf)
         t0, t1, t2 = tbuf[:3]
         t = (t2 << 16) | (t1 << 8) | t0
-        t *= 0.000039 # the time resolution is 39 microseconds
+        t *= 0.000039  # the time resolution is 39 microseconds
         return t
 
     ######################## SETTINGS RELATED ########################
@@ -450,7 +449,6 @@ class BMX160:
         else:
             pass
 
-
     @property
     def gyro_odr(self):
         return self._gyro_odr
@@ -495,7 +493,6 @@ class BMX160:
         # NOTE: this delay is a worst case. If we need repeated switching
         # we can choose the delay on a case-by-case basis.
         time.sleep(0.0081)
-
 
     ############## ACCELEROMETER SETTINGS  ##############
 
@@ -584,7 +581,7 @@ class BMX160:
     def init_mag(self):
         # see pg 25 of: https://ae-bst.resource.bosch.com/media/_tech/media/datasheets/BST-BMX160-DS000.pdf
         self.write_u8(BMX160_COMMAND_REG_ADDR, BMX160_MAG_NORMAL_MODE)
-        time.sleep(0.00065) # datasheet says wait for 650microsec
+        time.sleep(0.00065)  # datasheet says wait for 650microsec
         self.write_u8(BMX160_MAG_IF_0_ADDR, 0x80)
         # put mag into sleep mode
         self.write_u8(BMX160_MAG_IF_3_ADDR, 0x01)
@@ -600,11 +597,11 @@ class BMX160:
         self.write_u8(BMX160_MAG_IF_2_ADDR, 0x4C)
         self.write_u8(BMX160_MAG_IF_1_ADDR, 0x42)
         # Set ODR to 25 Hz
-        self.write_u8(BMX160_MAG_ODR_ADDR, BMX160_MAG_ODR_25HZ)
+        self.write_u8(BMX160_MAG_ODR_ADDR, BMX160_MAG_ODR_100HZ)
         self.write_u8(BMX160_MAG_IF_0_ADDR, 0x00)
         # put in low power mode.
         self.write_u8(BMX160_COMMAND_REG_ADDR, BMX160_MAG_LOWPOWER_MODE)
-        time.sleep(0.1) # takes this long to warm up (empirically)
+        time.sleep(0.1)  # takes this long to warm up (empirically)
 
     @property
     def mag_powermode(self):
@@ -633,8 +630,8 @@ class BMX160:
         # we can choose the delay on a case-by-case basis.
         time.sleep(0.001)
 
-    ## UTILS:
-    def generic_setter(self, desired, possible_values, bmx_constants, config_addr, warning_interp = ""):
+    # UTILS:
+    def generic_setter(self, desired, possible_values, bmx_constants, config_addr, warning_interp=""):
         i = find_nearest_valid(desired, possible_values)
         rounded = possible_values[i]
         bmxconst = bmx_constants[i]
@@ -651,7 +648,7 @@ class BMX160_I2C(BMX160):
     """Driver for the BMX160 connect over I2C."""
 
     def __init__(self, i2c, address=BMX160_I2C_ADDR):
-        self.i2c_device = I2CDevice(i2c, address,probe=False)
+        self.i2c_device = I2CDevice(i2c, address, probe=False)
         super().__init__()
 
     def read_u8(self, address):
@@ -713,11 +710,11 @@ def find_nearest_valid(desired, possible_values):
     except:
         return -1
 
-def settingswarning(interp = ""):
+def settingswarning(interp=""):
     if interp != "":
-            interp = " --"  + interp + " -- "
+        interp = " --"  + interp + " -- "
     print("BMX160 error occurred during " + interp +
-         "setting change. \nSetting not successfully changed and BMX160 may be in error state.")
+          "setting change. \nSetting not successfully changed and BMX160 may be in error state.")
 
 
 def format_binary(b):
