@@ -1,4 +1,5 @@
 from lib.template_task import Task
+from lib.debug import debug
 from pycubed import cubesat
 import logs
 import files
@@ -6,6 +7,8 @@ import traceback
 import time
 
 class LogTask(Task):
+    name = 'log'
+    color = 'red'
 
     def debug(self, msg, level=1, log=False):
         """
@@ -19,13 +22,13 @@ class LogTask(Task):
         :param log: Whether to log the message to a file
         :type log: bool
         """
-        msg = super().debug(msg, level)
+        msg = debug(self.name, self.color, msg, level)
         if cubesat.sdcard and log:
             try:
                 self.log(msg)
             except Exception as e:
                 # shouldn't call self.debug to prevent never ending loop
-                super().debug(f'Error logging to file: {e}', 1)
+                self.debug(f'Error logging to file: {e}', 1)
 
     def log(self, msg):
         """
@@ -57,6 +60,7 @@ class LogTask(Task):
         """
         try:
             formated_exception = traceback.format_exception(error, error, error.__traceback__)
+            formated_exception = '\n'.join(formated_exception)
             self.debug(f'[Error] {formated_exception}', log=True)
             cubesat.c_software_error += 1
         except Exception:

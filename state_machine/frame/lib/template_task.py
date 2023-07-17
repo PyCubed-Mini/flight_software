@@ -1,7 +1,4 @@
-from lib.debugcolor import co
-from state_machine import state_machine
 import traceback
-
 
 class Task:
 
@@ -10,31 +7,11 @@ class Task:
     Stores the task name and color.
     """
 
-    name = 'temp'
-    color = 'gray'
-
     def __init__(self):
         """
         Initialize the Task
         """
         pass
-
-    def debug(self, msg, level=1):
-        """
-        Print a debug message formatted with the task name and color
-
-        :param msg: Debug message to print
-        :type msg: str
-        :param level: > 1 will print as a sub-level
-        :type level: int
-        """
-        if level == 1:
-            header = f"[{co(msg=self.name,color=self.color)}/{state_machine.state}]"
-            msg = f"{header:>35} {msg}"
-        else:
-            msg = "\t" + f"{'   └── '}{msg}"
-        print(msg)
-        return msg
 
     async def main_task(self, *args, **kwargs):
         """
@@ -59,4 +36,5 @@ class Task:
         Called when an error is raised in the task.
         """
         formated_exception = traceback.format_exception(error, error, error.__traceback__)
-        self.debug(f'[Error] {formated_exception}')
+        formated_exception = '\n'.join(formated_exception)
+        print(formated_exception)

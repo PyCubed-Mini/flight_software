@@ -4,7 +4,7 @@ import tasko
 import lib.reader as reader
 from lib.bitflags import bitFlag, multiByte, nvm
 from lib.radio_driver import Radio
-from lib.sd import SD
+# from lib.sd import SD
 import random
 try:
     from ulab.numpy import array
@@ -85,7 +85,7 @@ class _Satellite:
         # debug utilities
         self.sim = False
         self.randomize_voltage = False
-        self.sdcard = SD()
+        self.sdcard = None
         self.vfs = None
 
     @property
