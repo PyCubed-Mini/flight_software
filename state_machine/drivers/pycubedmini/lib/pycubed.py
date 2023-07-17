@@ -70,6 +70,9 @@ class _Satellite:
     instance = None
     data_cache = {}
 
+    cam_pin = digitalio.DigitalInOut(board.CAM_EN)
+    cam_pin.direction = digitalio.Direction.OUTPUT
+
     # Satellite attributes
     LOW_VOLTAGE = 3.6  # needs to be higher than harvester IC VBAT_OK ON threshold
     # Max operating temp on specsheet for ATSAMD51J19A (Celsius)
@@ -96,6 +99,7 @@ class _Satellite:
         self._vbatt = analogio.AnalogIn(board.BATTERY)  # Battery voltage
 
         # To force initialization of hardware
+        self.uart
         self.i2c1
         self.i2c2
         self.i2c3
@@ -117,6 +121,15 @@ class _Satellite:
         self.drv_y
         self.drv_z
         self.burnwire1
+
+    @device
+    def uart(self):
+        """initialize UART communication with cameraboard
+        raise cam_pin high to turn on camera"""
+        try:
+            return busio.UART(board.TX, board.RX, baudrate=115200)
+        except Exception as e:
+            print(f"could not initialize uart: {e}")
 
     @device
     def i2c1(self):
