@@ -1,8 +1,8 @@
 from Tasks.safety import task as safety
 from Tasks.telemetry import task as telemetry
-from Tasks.blink_task import task as blink
-from Tasks.imu_task import task as imu
-from Tasks.time_task import task as time
+from Tasks.blink import task as blink
+from Tasks.imu import task as imu
+from Tasks.time import task as time
 from Tasks.gnc import task as gnc
 from Tasks.radio import task as radio
 from Tasks.deployment_manager import deployment_manager

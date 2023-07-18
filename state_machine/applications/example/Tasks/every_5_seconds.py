@@ -1,4 +1,4 @@
-from lib.template_task import Task
+from lib.template import Task
 
 
 class task(Task):

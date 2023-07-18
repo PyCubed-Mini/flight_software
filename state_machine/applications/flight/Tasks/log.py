@@ -1,4 +1,4 @@
-from lib.template_task import Task
+from lib.template import Task
 from lib.debug import debug
 from pycubed import cubesat
 import logs
