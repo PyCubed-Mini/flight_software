@@ -5,7 +5,7 @@
         "reportMissingModuleSource": "none"
     },
     "python.analysis.extraPaths": [
-        "state_machine/frame/"
+        "frame/"
     ],
     "circuitpython.board.version": null,
     "circuitpython.board.vid": "0x04D8",
@@ -13,7 +13,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./state_machine/unit_tests",
+        "./unit_tests",
         "-p",
         "test*.py"
     ],
