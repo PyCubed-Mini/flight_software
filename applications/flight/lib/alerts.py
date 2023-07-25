@@ -37,5 +37,6 @@ alerts = AlertManager(
         'radio_task_disabled',
         'rtc_available',
         'neopixel_available',
+        'current_sensor_available',
     }
 )
