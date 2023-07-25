@@ -60,6 +60,8 @@ class _Satellite:
     LOW_TEMP = -40
     # Low battery voltage threshold
     LOW_VOLTAGE = 4.0
+    # Low battery current (mA) threshold
+    LOW_CURRENT = 100.0
 
     def __init__(self):
         self.f_contact = True
