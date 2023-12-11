@@ -17,10 +17,10 @@ config = {
             "BlinkOff"
         ],
         "EnterFunctions": [
-            "Announcer"
+            "BlinkOn"
         ],
         "ExitFunctions": [
-            "Announcer"
+            "BlinkOff"
         ]
     },
     "BlinkOff": {

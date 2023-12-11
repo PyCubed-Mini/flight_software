@@ -1,6 +1,6 @@
 from Tasks.blink import blink
 
-from TransitionFunctions import announcer
+from TransitionFunctions import blinkOn, blinkOff
 
 from config import config
 
@@ -9,5 +9,6 @@ TaskMap = {
 }
 
 TransitionFunctionMap = {
-    'Announcer': announcer
+    'BlinkOn': blinkOn,
+    'BlinkOff': blinkOff
 }
