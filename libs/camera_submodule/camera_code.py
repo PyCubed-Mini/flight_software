@@ -1,6 +1,9 @@
 import time
 import sensor
 import os
+import tf
+import uos
+import gc
 from pyb import UART
 
 # set up camera
@@ -126,6 +129,19 @@ if __name__ == '__main__':
             os.mkdir("images")
     except Exception as e:
         print(f"could not create images directory: {e}")
+
+    try:
+        # load the model, alloc the model file on the heap if we have at least 64K free after loading
+        net = tf.load("trained.tflite", load_to_fb=uos.stat('trained.tflite')[6] > (gc.mem_free() - (64*1024)))
+    except Exception as e:
+        print(e)
+        raise Exception('Failed to load "trained.tflite", did you copy the .tflite and labels.txt file onto the mass-storage device? (' + str(e) + ')')
+
+    try:
+        labels = [line.rstrip('\n') for line in open("labels.txt")]
+    except Exception as e:
+        raise Exception('Failed to load "labels.txt", did you copy the .tflite and labels.txt file onto the mass-storage device? (' + str(e) + ')')
+
 
     # check that the UART connection is good
     req = check_connection()
