@@ -1,10 +1,6 @@
 # Edge Impulse - OpenMV Image Classification Example
 
-import sensor
-import time
-import tf
-import uos
-import gc
+import sensor, image, time, os, tf, uos, gc
 
 sensor.reset()                         # Reset and initialize the sensor.
 sensor.set_pixformat(sensor.RGB565)    # Set pixel format to RGB565 (or GRAYSCALE)
@@ -16,19 +12,14 @@ net = None
 labels = None
 
 try:
-    # load the model, alloc the model file on the heap if we have at least 64K free after loading
-    net = tf.load("trained.tflite", load_to_fb=uos.stat('trained.tflite')[6] > (gc.mem_free() - (64 * 1024)))
+    # Load built in model
+    labels, net = tf.load_builtin_model('trained')
 except Exception as e:
-    print(e)
-    raise Exception('Failed to load "trained.tflite", did you copy the .tflite and labels.txt file onto the mass-storage device? (' + str(e) + ')')
+    raise Exception(e)
 
-try:
-    labels = [line.rstrip('\n') for line in open("labels.txt")]
-except Exception as e:
-    raise Exception('Failed to load "labels.txt", did you copy the .tflite and labels.txt file onto the mass-storage device? (' + str(e) + ')')
 
 clock = time.clock()
-while (True):
+while(True):
     clock.tick()
 
     img = sensor.snapshot()
@@ -39,6 +30,10 @@ while (True):
         img.draw_rectangle(obj.rect())
         # This combines the labels and confidence values into a list of tuples
         predictions_list = list(zip(labels, obj.output()))
+
+        for t in predictions_list:
+            if t[1] >= 0.7:
+                img.draw_string(0, 0, t[0])
 
         for i in range(len(predictions_list)):
             print("%s = %f" % (predictions_list[i][0], predictions_list[i][1]))

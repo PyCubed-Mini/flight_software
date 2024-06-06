@@ -1,5 +1,0 @@
-clouds
-land
-land_clouds
-water
-water_clouds
