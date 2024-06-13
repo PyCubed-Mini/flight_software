@@ -7,7 +7,7 @@ I recommend that you install the [OpenMV IDE](https://openmv.io/pages/download) 
 
 First open the OpenMV IDE. Then plug your camera into your computer via USB. The connect button just above the run button in the bottom left corner should change its icon. This lets you know the camera is able to be recognized. Click the connect button. This will likely prompt you to upgrade the firmware and register the device. Do it if you want, but it is not necessary. We will be loading new firmware anyway. 
 
-Once you are past the prompts the camera should be connected and also show up as a drive on your file system. In order to test that the camera is set up properly with our flight software you will need to first [flash the firmware](#classification_openmv_cam_m7_firmwarebin), then load the camera_code.py file as main.py on the camera board drive.
+Once you are past the prompts the camera should be connected and also show up as a drive on your file system. In order to test that the camera is set up properly with our flight software you will need to first [flash the firmware](https://docs.edgeimpulse.com/docs/run-inference/running-your-impulse-openmv#deploying-your-impulse-as-an-openmv-firmware), then load the camera_code.py file as main.py on the camera board drive.
 
 To run our system check test you also need to load a test image onto the camera board at `images/test_image.jpeg` and put the same exact image on the main board at `/sd/images/test_image.jpeg`.
 
