@@ -156,16 +156,12 @@ if __name__ == '__main__':
     except Exception as e:
         raise Exception(e)
 
-    # img_filepath = label_image(labels, net)
-    # img_filepath = process_image()
-
     # check that the UART connection is good
     req = check_connection()
 
     if req == CONFIRMATION_RECEIVE_CODE:
         # take, process, and save an image
         img_filepath = label_image(labels, net)
-        # img_filepath = process_image()
 
         # send the current image
         if img_filepath == NO_IMAGE:
