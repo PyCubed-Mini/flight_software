@@ -64,9 +64,9 @@ def process_image() -> str:
     return filepath
 
 def label_image(labels, net):
-    start_time = time.monotonic()
+    start_time = time.ticks_ms()
     img_found = False
-    while start_time - 2 < time.monotonic():
+    while start_time - 2 < time.ticks_ms():
         img = sensor.snapshot()
         for obj in net.classify(img, min_scale=1.0, scale_mul=0.8, x_overlap=0.5, y_overlap=0.5):
             predictions_list = list(zip(labels, obj.output()))
@@ -154,6 +154,9 @@ if __name__ == '__main__':
         labels, net = tf.load_builtin_model('trained')
     except Exception as e:
         raise Exception(e)
+
+    # img_filepath = label_image(labels, net)
+    # img_filepath = process_image()
 
     # check that the UART connection is good
     req = check_connection()
