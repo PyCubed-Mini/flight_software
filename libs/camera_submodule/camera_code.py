@@ -1,8 +1,9 @@
-import time
-import sensor
 import os
-from pyb import UART
+import time
+
+import sensor
 import tf
+from pyb import UART
 
 # set up camera
 sensor.reset()                          # Reset and initialize the sensor.

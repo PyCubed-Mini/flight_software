@@ -1,6 +1,9 @@
 # Edge Impulse - OpenMV Image Classification Example
 
-import sensor, image, time, os, tf, uos, gc
+import time
+
+import sensor
+import tf
 
 sensor.reset()                         # Reset and initialize the sensor.
 sensor.set_pixformat(sensor.RGB565)    # Set pixel format to RGB565 (or GRAYSCALE)
@@ -19,7 +22,7 @@ except Exception as e:
 
 
 clock = time.clock()
-while(True):
+while (True):
     clock.tick()
 
     img = sensor.snapshot()
