@@ -42,16 +42,12 @@ types:
         type: u1
       - id: state_index
         type: u1
-      - id: datetime_valid_flag
+      - id: flags
         type: u1
-      - id: contact_flag
-        type: u1
-      - id: burn_flag
-        type: u2
       - id: software_error_count
-        type: f4
+        type: u1
       - id: boot_count
-        type: f4
+        type: u2
       - id: battery_voltage
         type: f4
       - id: cpu_temperature_c

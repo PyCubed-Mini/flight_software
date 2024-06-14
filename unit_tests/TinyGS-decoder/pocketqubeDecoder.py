@@ -1,6 +1,7 @@
 import sys
 import base64
 import json
+import struct
 from pocketqube import Pocketqube as pq
 
 
@@ -28,12 +29,15 @@ def getPayload(packet):
 
 
 def decode(packet_base64):
-    if isinstance(packet_base64, bytearray):
-        message_bytes = base64.b64decode(packet_base64)
-    else:
-        base64_bytes = packet_base64.encode('latin-1')
-        message_bytes = base64.b64decode(base64_bytes)
-    return pq.from_bytes(message_bytes)
+    fmt = 2 * 'H' + 3 * 'B' + 'H' + 'f' * 11 + 6 * 'f'
+    if not isinstance(packet_base64, bytearray):
+        base64_bytes = packet_base64.encode('ascii')
+        packet_base64 = base64.b64decode(base64_bytes)
+    unpacked_array = bytearray([])
+    unpacked = struct.unpack(fmt, packet_base64[1:])
+    for val in unpacked:
+        unpacked_array += bytearray(val.to_bytes((val.bit_length() + 7) // 8, 'big'))
+    return pq.from_bytes(unpacked_array)
 
 
 def main(argv):
@@ -56,7 +60,7 @@ def main(argv):
         'payload': getPayload(pocketqubePacket)
     }
 
-    parsedPacket['telemetry'] = (parsedPacket['header']['message'] == 0x02)
+    parsedPacket['telemetry'] = (parsedPacket['header']['msg_type'] == 0x02)
     
     print(json.dumps(parsedPacket))
     return 0
