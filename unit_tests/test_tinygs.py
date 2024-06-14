@@ -2,6 +2,7 @@ import sys
 import unittest
 import time
 from numpy import array
+import base64
 
 sys.path.insert(0, './drivers/emulation/lib')
 sys.path.insert(0, './drivers/emulation/')
@@ -17,8 +18,9 @@ from testutils import command_data
 from radio_test_utils import init_radio_task_for_testing
 from state_machine import state_machine
 from pocketqubeDecoder import main as decoder
+from prometheusDecoder import main as new_decoder
 from Tasks.log import LogTask
-from lib.logs import telemetry_packet
+from lib.logs import telemetry_packet, unpack_telemetry
 
 debug = LogTask()
 
@@ -80,11 +82,13 @@ class BeaconDecoderTest(unittest.TestCase):
 
         beacon_packet = bytearray(b'\x02') + telemetry_packet(time_in)
 
+        debug.debug(unpack_telemetry(telemetry_packet(time_in)))
+
         debug.debug(len(beacon_packet))
 
         debug.debug(f'Packet that was sent: {beacon_packet}')
 
-        debug.debug(decoder([beacon_packet]))
+        debug.debug(new_decoder([base64.b64encode(beacon_packet)]))
 
 if __name__ == '__main__':
     unittest.main()
