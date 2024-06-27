@@ -11,13 +11,13 @@ from collections import namedtuple
 # 3 uint8 + 1 uint16 + 11 float32
 # = 49 bytes of data
 # = 52 byte c struct (1 extra to align chars, 2 extra to align short)
-beacon_format = 3 * 'B' + 'H' + 'f' * 11
+beacon_format = 3 * 'B' + 'H' + 'f' * 14
 
 # Defines what the unpack_beacon will return
 beacon_tuple = namedtuple("beacon_tuple", ("state_index", "datetime_valid_flag", "contact_flag",
                                            "burn_flag", "software_error_count", "boot_count",
                                            "battery_voltage", "cpu_temperature_C", "imu_temperature_C",
-                                           "gyro", "mag", "RSSI_dB", "FEI_Hz"))
+                                           "gyro", "mag", "accel", "RSSI_dB", "FEI_Hz"))
 
 # 6 float32
 # = 24 bytes of data
@@ -55,6 +55,7 @@ def beacon_packet():
     imu_temp = cubesat.temperature_imu if cubesat.imu and cubesat.has_imu_temp else nan
     gyro = cubesat.gyro if cubesat.imu else array([nan, nan, nan])
     mag = cubesat.magnetic if cubesat.imu else array([nan, nan, nan])
+    accel = cubesat.acceleration if cubesat.imu else array([nan, nan, nan])
     rssi = cubesat.radio.last_rssi if cubesat.radio else nan
     fei = cubesat.radio.frequency_error if cubesat.radio else nan
     return struct.pack(beacon_format,
@@ -62,6 +63,7 @@ def beacon_packet():
                        vbatt, cpu_temp, imu_temp,
                        gyro[0], gyro[1], gyro[2],
                        mag[0], mag[1], mag[2],
+                       accel[0], accel[1], accel[2],
                        rssi, fei)
 
 def system_packet():
@@ -118,16 +120,18 @@ def unpack_beacon(bytes):
      vbatt, cpu_temp, imu_temp,
      gyro0, gyro1, gyro2,
      mag0, mag1, mag2,
+     accel0, accel1, accel2,
      rssi, fei) = struct.unpack(beacon_format, bytes)
 
     gyro = array([gyro0, gyro1, gyro2])
     mag = array([mag0, mag1, mag2])
+    accel = array([accel0, accel1, accel2])
 
     return beacon_tuple(state_byte, bool(flags & (0b1 << 2)), bool(flags & (0b1 << 1)),
                         bool(flags & (0b1 << 0)), software_error,
                         boot_count, vbatt, cpu_temp,
                         imu_temp, gyro, mag,
-                        rssi, fei)
+                        accel, rssi, fei)
 
 
 def unpack_system(bytes):
