@@ -43,6 +43,7 @@ class task(Task):
         file.write(telemetry_packet)
         file.close()
 
-    def downlink_beacon(self, beacon):
+    def downlink_beacon(self):
         beacon_packet = logs.beacon_packet()
-        tq.push(Message(priority=10, data=beacon_packet, header=headers.BEACON, with_ack=False))
+        tq.push(Message(10, beacon_packet, header=headers.BEACON, with_ack=False))
+        self.debug("beacon added to transmission queue")
