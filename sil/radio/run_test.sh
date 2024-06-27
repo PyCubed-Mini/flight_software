@@ -1,0 +1,1 @@
+PYTHONPATH=drivers/emulation:drivers/emulation/lib:applications/flight:applications/flight/lib:frame:sil/core python3 -m unittest discover -s sil/radio -p '*_test.py'
