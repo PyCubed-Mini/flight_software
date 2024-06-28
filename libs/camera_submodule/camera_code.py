@@ -1,6 +1,9 @@
-import time
-import sensor
+# flake8: noqa
 import os
+import time
+
+import sensor
+import tf
 from pyb import UART
 
 # set up camera
@@ -61,6 +64,24 @@ def process_image() -> str:
 
     img.save(filepath, quality=90)
     return filepath
+
+def label_image(labels, net):
+    start_time = time.ticks_ms()
+    img_found = False
+    while start_time - 2 < time.ticks_ms():
+        img = sensor.snapshot()
+        for obj in net.classify(img, min_scale=1.0, scale_mul=0.8, x_overlap=0.5, y_overlap=0.5):
+            predictions_list = list(zip(labels, obj.output()))
+            for t in predictions_list:
+                if t[1] >= 0.7:
+                    img.draw_rectangle(obj.rect())
+                    img.draw_string(0, 0, t[0])
+                    img.save(filepath, quality=90)
+                    img_found = True
+        if img_found:
+            break
+    return filepath
+
 
 def send_image(image_filepath) -> None:
     # send packets and wait for ack after each packet
@@ -127,12 +148,21 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"could not create images directory: {e}")
 
+    net = None
+    labels = None
+
+    try:
+        # Load built in model
+        labels, net = tf.load_builtin_model('trained')
+    except Exception as e:
+        raise Exception(e)
+
     # check that the UART connection is good
     req = check_connection()
 
     if req == CONFIRMATION_RECEIVE_CODE:
         # take, process, and save an image
-        img_filepath = process_image()
+        img_filepath = label_image(labels, net)
 
         # send the current image
         if img_filepath == NO_IMAGE:
