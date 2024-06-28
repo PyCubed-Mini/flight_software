@@ -86,7 +86,7 @@ class _Satellite:
     watchdog_pin.value = True
 
     # Satellite attributes
-    LOW_VOLTAGE = 3.6  # needs to be higher than harvester IC VBAT_OK ON threshold
+    LOW_VOLTAGE = 2.5  # needs to be higher than harvester IC VBAT_OK ON threshold
     # Max operating temp on specsheet for ATSAMD51J19A (Celsius)
     HIGH_TEMP = 125
     # Min operating temp on specsheet for ATSAMD51J19A (Celsius)
