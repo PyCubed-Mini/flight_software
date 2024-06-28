@@ -79,7 +79,13 @@ async def run(result_dict):
     approx_equal = vec_approx_equal_generator(ACCEL_THRESHOLD)
     for (axis, expected) in directions:
         input(f"Place the cubesat with the {bold}+{axis}{normal} board facing up and press enter: ")
-        res = expect(cubesat.acceleration, approx_equal, expected)
+        time.sleep(0.3)
+        sum = numpy.array([0.0, 0.0, 0.0])
+        for i in range(100):
+            accel = numpy.array(cubesat.acceleration)
+            sum += accel
+        sum /= 100
+        res = expect(sum, approx_equal, expected)
         accel_results.append((f"IMU_Accel_{axis}", res))
     update_result_dict_from_list(result_dict, accel_results, "IMU_Accel", "Success")
 

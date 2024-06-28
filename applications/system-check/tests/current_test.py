@@ -13,7 +13,7 @@ def current_test():
     outlier_count = 0
 
     # threshold in mA, such that a measurement counts as an outlier
-    outlier_threshold = 2
+    outlier_threshold = 20
     for i in range(measurements):
         vals[i] = cubesat.battery_current
         time.sleep(0.05)

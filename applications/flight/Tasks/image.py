@@ -1,11 +1,13 @@
 from Tasks.log import LogTask as Task
-import radio_utils.image_queue as iq
+from radio_utils.image_queue import image_queue as iq
+import files
 from pycubed import cubesat
 from time import monotonic, localtime
 from gc import collect
 from lib.alerts import alerts
 from lib.image_utils import flags
 import tasko
+import os
 
 # constants
 CONFIRMATION_SEND_CODE = 0xAA
@@ -59,6 +61,11 @@ class task(Task):
             self.debug("Turning Camera on")
             cubesat.cam_pin.value = True
             self.cam_on = True
+            try:
+                if 'images' not in os.listdir('/sd'):
+                    files.mkdirp('/sd/images')
+            except Exception as e:
+                self.debug(f"could not initialize images directory: {e}", level=2)
         elif (not self.cam_active) and self.cam_on:
             # await self.get_confirmation(st)
             self.debug("checking camera connection...")

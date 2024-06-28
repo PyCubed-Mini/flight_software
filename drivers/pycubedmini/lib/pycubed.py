@@ -652,6 +652,8 @@ class _Satellite:
 
         self.RGB = (0, 0, 0)
 
+        self.cam_pin.value = False
+
         if self.sun_xn:
             self.sun_xn.enabled = False
         if self.sun_yn:

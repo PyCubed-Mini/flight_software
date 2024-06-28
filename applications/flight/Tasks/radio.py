@@ -26,11 +26,11 @@ def should_transmit():
     Return if we should transmit
     """
     tx_ready = settings.TX_ALLOWED and not tq.empty() and cubesat.radio.fifo_empty()
-    tx_time_ready = time.time() < tx_before_time
+    # tx_time_ready = time.time() < tx_before_time
     if tx_ready:
         global tx_ready_counter
         tx_ready_counter += 1
-    return tx_ready and (tx_ready_counter % TX_SKIP != 0) and tx_time_ready
+    return tx_ready and (tx_ready_counter % TX_SKIP != 0)
 
 class task(Task):
     name = 'radio'
