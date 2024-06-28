@@ -1,5 +1,4 @@
-# Edge Impulse - OpenMV Image Classification Example
-
+# flake8: noqa
 import time
 
 import sensor
