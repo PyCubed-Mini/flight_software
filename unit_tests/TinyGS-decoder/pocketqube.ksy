@@ -1,7 +1,7 @@
 meta:
   id: pocketqube
   file-extension: pocketqube
-  endian: be
+  endian: le
 seq:
   - id: header
     type: header
@@ -37,16 +37,18 @@ types:
   beacon:
     seq:
       - id: time_min
-        type: u1
+        type: u2
       - id: time_sec
-        type: u1
+        type: u2
       - id: state_index
         type: u1
       - id: flags
         type: u1
       - id: software_error_count
-        type: u1
+        type: u2
       - id: boot_count
+        type: u2
+      - id: pad_byte
         type: u2
       - id: battery_voltage
         type: f4
@@ -66,6 +68,12 @@ types:
         type: f4
       - id: mag_2
         type: f4
+      - id: accel_0
+        type: f4
+      - id: accel_1
+        type: f4
+      - id: accel_2
+        type: f4
       - id: rssi_db
         type: f4
       - id: fei_hz
@@ -82,7 +90,7 @@ types:
         type: f4
       - id: lux_zn
         type: f4
-      
+        
   buffered:
     seq:
       - id: data

@@ -70,10 +70,13 @@ class Pocketqube(KaitaiStruct):
             self._read()
 
         def _read(self):
+            self.time_min = self._io.read_u2le()
+            self.time_sec = self._io.read_u2le()
             self.state_index = self._io.read_u1()
             self.flags = self._io.read_u1()
-            self.software_error_count = self._io.read_u1()
+            self.software_error_count = self._io.read_u2le()
             self.boot_count = self._io.read_u2le()
+            self.pad_byte = self._io.read_u2le()
             self.battery_voltage = self._io.read_f4le()
             self.cpu_temperature_c = self._io.read_f4le()
             self.imu_temperature_c = self._io.read_f4le()
@@ -83,8 +86,17 @@ class Pocketqube(KaitaiStruct):
             self.mag_0 = self._io.read_f4le()
             self.mag_1 = self._io.read_f4le()
             self.mag_2 = self._io.read_f4le()
+            self.accel_0 = self._io.read_f4le()
+            self.accel_1 = self._io.read_f4le()
+            self.accel_2 = self._io.read_f4le()
             self.rssi_db = self._io.read_f4le()
             self.fei_hz = self._io.read_f4le()
+            self.lux_xp = self._io.read_f4le()
+            self.lux_yp = self._io.read_f4le()
+            self.lux_zp = self._io.read_f4le()
+            self.lux_xn = self._io.read_f4le()
+            self.lux_yn = self._io.read_f4le()
+            self.lux_zn = self._io.read_f4le()
 
 
     class Buffered(KaitaiStruct):
