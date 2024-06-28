@@ -20,7 +20,7 @@ from state_machine import state_machine
 from pocketqubeDecoder import main as decoder
 from prometheusDecoder import main as new_decoder
 from Tasks.log import LogTask
-from lib.logs import telemetry_packet, unpack_telemetry
+from lib.logs import beacon_packet
 
 debug = LogTask()
 
@@ -80,15 +80,39 @@ class BeaconDecoderTest(unittest.TestCase):
         cubesat._luxp = array([lux_xp_in, lux_yp_in, lux_zp_in])
         cubesat._luxn = array([lux_xn_in, lux_yn_in, lux_zn_in])
 
-        beacon_packet = bytearray(b'\x02') + telemetry_packet(time_in)
+        # rt = init_radio_task_for_testing()
 
-        debug.debug(unpack_telemetry(telemetry_packet(time_in)))
+        # query_packet = Packet(command_data())
 
-        debug.debug(len(beacon_packet))
+        # beacon_packet = bytearray(b'\x02') + telemetry_packet(time_in)
 
-        debug.debug(f'Packet that was sent: {beacon_packet}')
+        # tel = unpack_telemetry(telemetry_packet(time_in))
 
-        debug.debug(new_decoder([base64.b64encode(beacon_packet)]))
+        # debug.debug('-----Below is the transmitted packet------')
+
+        # for item in tel:
+        #     debug.debug(f'{item}\n')
+
+        # debug.debug('-----Below is the decoded packet------')
+
+        #debug.debug(len(beacon_packet))
+
+        #debug.debug(f'Packet that was sent: {beacon_packet}')
+
+        bcn_pack = beacon_packet()
+
+        bcn_pack = b'\x01\x02\r\x00\xc5\x01\x00\x00\xa4p]@\x00\x00\x9aB\x00\x00\xb0A\x00\x00(\xc2\xcd\xcc\xcc=\x00\x00\xe0@\x00\x00\x80@\x00\x00@@\x00\x00\x80?\x9a\x99\xb1\xc2\x00\xc0v\xc4'
+
+        print(bcn_pack)
+
+        packet = bytearray(b'\x02') + bcn_pack
+
+        pack = decoder([base64.b64encode(packet)])["payload"]
+
+        # for k in pack:
+        #     debug.debug(f'{k}: {pack[k]}')
+
+        #debug.debug(decoder([base64.b64encode(beacon_packet)]))
 
 if __name__ == '__main__':
     unittest.main()
