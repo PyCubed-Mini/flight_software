@@ -1,8 +1,10 @@
 import sys
 import unittest
+from unittest import IsolatedAsyncioTestCase
 import time
 from numpy import array
 import base64
+import struct
 
 sys.path.insert(0, './drivers/emulation/lib')
 sys.path.insert(0, './drivers/emulation/')
@@ -11,27 +13,21 @@ sys.path.insert(0, './applications/flight/lib')
 sys.path.insert(0, './frame/')
 sys.path.insert(0, 'unit_tests/TinyGS-decoder/')
 
-from radio_driver import _Packet as Packet
-import radio_utils.commands as cdh
+import radio_utils.headers as headers
 from pycubed import cubesat
-from testutils import command_data
 from radio_test_utils import init_radio_task_for_testing
 from state_machine import state_machine
+from Tasks.telemetry import task as telemetry
 from pocketqubeDecoder import main as decoder
-from prometheusDecoder import main as new_decoder
-from Tasks.log import LogTask
-from lib.logs import beacon_packet
+from lib.logs import telemetry_packet
 
-debug = LogTask()
-
-# We want it to return instantly
-
-class BeaconDecoderTest(unittest.TestCase):
-    def test_beacon(self):
-        '''Create a fake beacon request and then have it decoded'''
+class TelemetryTaskTest(IsolatedAsyncioTestCase):
+    async def test_beacon(self):
+        '''Run telemetry main task and then have it decoded'''
 
         mag_in = array([4.0, 3.0, 1.0])
         gyro_in = array([-42.0, 0.1, 7.0])
+        accel_in = array([-2.0, 0.1, 17.8])
 
         cpu_temp_in = 77
         imu_temp_in = 22
@@ -47,7 +43,6 @@ class BeaconDecoderTest(unittest.TestCase):
 
         state_machine.states = [1, 2, 3, 4]
         state_machine.state = 2
-        state_in = state_machine.states.index(state_machine.state)
 
         lux_xp_in = 12.3
         lux_yp_in = 0.2
@@ -58,8 +53,6 @@ class BeaconDecoderTest(unittest.TestCase):
         lux_zn_in = 2.0
 
         time_in = time.localtime()
-        tm_min_in = time_in.tm_min
-        tm_sec_in = time_in.tm_sec
 
         cubesat.f_contact = f_contact_in
         cubesat.f_burn = f_burn_in
@@ -71,6 +64,7 @@ class BeaconDecoderTest(unittest.TestCase):
 
         cubesat._mag = mag_in
         cubesat._gyro = gyro_in
+        cubesat._accel = accel_in
         cubesat._cpu_temp = cpu_temp_in
         cubesat._imu_temperature = imu_temp_in
 
@@ -80,39 +74,31 @@ class BeaconDecoderTest(unittest.TestCase):
         cubesat._luxp = array([lux_xp_in, lux_yp_in, lux_zp_in])
         cubesat._luxn = array([lux_xn_in, lux_yn_in, lux_zn_in])
 
-        # rt = init_radio_task_for_testing()
+        packet = telemetry_packet(time_in)
 
-        # query_packet = Packet(command_data())
+        actual_packet = bytearray(len(packet) + 1)
+        actual_packet[0] = headers.BEACON
+        actual_packet[1:] = telemetry_packet(time_in)
 
-        # beacon_packet = bytearray(b'\x02') + telemetry_packet(time_in)
+        rt = init_radio_task_for_testing()
+        tel = telemetry()
 
-        # tel = unpack_telemetry(telemetry_packet(time_in))
+        await tel.main_task()
+        await rt.main_task()
 
-        # debug.debug('-----Below is the transmitted packet------')
+        tx_packet = cubesat.radio.test.last_tx_packet
+        self.assertEqual(tx_packet, actual_packet, "Got unexpected packet")
 
-        # for item in tel:
-        #     debug.debug(f'{item}\n')
+        telemetry_format = 2 * 'H' + 3 * 'B' + 'H' + 'f' * 14 + 6 * 'f'
+        expected_decoded_packet = struct.unpack(telemetry_format, packet)
 
-        # debug.debug('-----Below is the decoded packet------')
+        decoded_packet = decoder([base64.b64encode(tx_packet)])['payload']
 
-        #debug.debug(len(beacon_packet))
-
-        #debug.debug(f'Packet that was sent: {beacon_packet}')
-
-        bcn_pack = beacon_packet()
-
-        bcn_pack = b'\x01\x02\r\x00\xc5\x01\x00\x00\xa4p]@\x00\x00\x9aB\x00\x00\xb0A\x00\x00(\xc2\xcd\xcc\xcc=\x00\x00\xe0@\x00\x00\x80@\x00\x00@@\x00\x00\x80?\x9a\x99\xb1\xc2\x00\xc0v\xc4'
-
-        print(bcn_pack)
-
-        packet = bytearray(b'\x02') + bcn_pack
-
-        pack = decoder([base64.b64encode(packet)])["payload"]
-
-        # for k in pack:
-        #     debug.debug(f'{k}: {pack[k]}')
-
-        #debug.debug(decoder([base64.b64encode(beacon_packet)]))
+        counter = 0
+        for value in decoded_packet:
+            if value == 'pad_byte': continue  # Note that python struct adds a pad byte
+            self.assertAlmostEqual(decoded_packet[value], expected_decoded_packet[counter], 'Got unexpected decoding')
+            counter += 1
 
 if __name__ == '__main__':
     unittest.main()
