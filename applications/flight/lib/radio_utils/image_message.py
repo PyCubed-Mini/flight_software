@@ -44,6 +44,7 @@ class ImageMessage(Message):
         self.found_scan = False
         self.file_err = False
         self.scan_size = ((self.packet_size - 1) // 64) * 64
+        self.count = 0
         self.priority = 2
 
     def packet(self) -> bool:
@@ -94,11 +95,15 @@ class ImageMessage(Message):
         else:
             """mid packet"""
             packet[0] = IMAGE_MID
+        packet[1] = self.count
+        packet[2:] = data
 
-        packet[1:] = data
+        # update cursor and count
+        self.cursor += self.sent_packet_len - 1
+        self.count += 1
 
-        # always needs an ack for these packets
-        return packet, True
+        # no longer using Acks for image packets
+        return packet, False
 
     def done(self) -> bool:
         return (self.length <= self.cursor) or self.file_err
@@ -110,7 +115,8 @@ class ImageMessage(Message):
         if self.found_scan:
             self.in_scan = True
         # cursor moves by packet len minus the 1 byte header
-        self.cursor += self.sent_packet_len - 1
+        # self.cursor += self.sent_packet_len - 1
+        # self.count += 1
 
     def __repr__(self) -> str:
         return f'<Image: {self.filepath}'
