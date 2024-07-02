@@ -19,7 +19,7 @@ from radio_test_utils import init_radio_task_for_testing
 from state_machine import state_machine
 from Tasks.telemetry import task as telemetry
 from pocketqubeDecoder import main as decoder
-from lib.logs import telemetry_packet
+from lib.logs import beacon_packet, beacon_format
 
 class TelemetryTaskTest(IsolatedAsyncioTestCase):
     async def test_beacon(self):
@@ -44,16 +44,6 @@ class TelemetryTaskTest(IsolatedAsyncioTestCase):
         state_machine.states = [1, 2, 3, 4]
         state_machine.state = 2
 
-        lux_xp_in = 12.3
-        lux_yp_in = 0.2
-        lux_zp_in = 5.0
-
-        lux_xn_in = 6.0
-        lux_yn_in = 8.1
-        lux_zn_in = 2.0
-
-        time_in = time.localtime()
-
         cubesat.f_contact = f_contact_in
         cubesat.f_burn = f_burn_in
         cubesat.c_software_error = error_count_in
@@ -71,14 +61,11 @@ class TelemetryTaskTest(IsolatedAsyncioTestCase):
         cubesat.radio._last_rssi = rssi_in
         cubesat.radio._frequency_error = fei_in
 
-        cubesat._luxp = array([lux_xp_in, lux_yp_in, lux_zp_in])
-        cubesat._luxn = array([lux_xn_in, lux_yn_in, lux_zn_in])
-
-        packet = telemetry_packet(time_in)
+        packet = beacon_packet()
 
         actual_packet = bytearray(len(packet) + 1)
         actual_packet[0] = headers.BEACON
-        actual_packet[1:] = telemetry_packet(time_in)
+        actual_packet[1:] = beacon_packet()
 
         rt = init_radio_task_for_testing()
         tel = telemetry()
@@ -89,8 +76,7 @@ class TelemetryTaskTest(IsolatedAsyncioTestCase):
         tx_packet = cubesat.radio.test.last_tx_packet
         self.assertEqual(tx_packet, actual_packet, "Got unexpected packet")
 
-        telemetry_format = 2 * 'H' + 3 * 'B' + 'H' + 'f' * 14 + 6 * 'f'
-        expected_decoded_packet = struct.unpack(telemetry_format, packet)
+        expected_decoded_packet = struct.unpack(beacon_format, packet)
 
         decoded_packet = decoder([base64.b64encode(tx_packet)])['payload']
 

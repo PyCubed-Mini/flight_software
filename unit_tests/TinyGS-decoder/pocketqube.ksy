@@ -36,10 +36,6 @@ types:
   
   beacon:
     seq:
-      - id: time_min
-        type: u2
-      - id: time_sec
-        type: u2
       - id: state_index
         type: u1
       - id: flags
@@ -77,18 +73,6 @@ types:
       - id: rssi_db
         type: f4
       - id: fei_hz
-        type: f4
-      - id: lux_xp
-        type: f4
-      - id: lux_yp
-        type: f4
-      - id: lux_zp
-        type: f4
-      - id: lux_xn
-        type: f4
-      - id: lux_yn
-        type: f4
-      - id: lux_zn
         type: f4
         
   buffered:

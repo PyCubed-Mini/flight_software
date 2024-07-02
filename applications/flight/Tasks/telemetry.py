@@ -38,11 +38,12 @@ class task(Task):
         boot = cubesat.c_boot
         current_file = f"/sd/logs/telemetry/{boot:05}/{hour_stamp}"
         telemetry_packet = logs.telemetry_packet(t)
-        self.downlink_telemetry(telemetry_packet)
+        self.downlink_beacon()
         file = open(current_file, "ab+")
         file.write(telemetry_packet)
         file.close()
 
-    def downlink_telemetry(self, packet):
+    def downlink_beacon(self):
+        packet = logs.beacon_packet()
         tq.push(Message(10, packet, header=headers.BEACON, with_ack=False))
         self.debug("beacon added to transmission queue")
